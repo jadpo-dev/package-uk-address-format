@@ -5,7 +5,7 @@ package UkAddressFormat.v1
     /// UK addresses from Royal Mail's Postcode Address File: a record's fragments laid out as Royal Mail's Clear Addressing guidelines say, as address lines, a post town and a postcode, with the premise, number and unit, and sorted as a street's addresses are.
     file package.jadpo
     kind library
-    version 1.0.0
+    version 1.0.1
     publisher @jadpo
     licence apache_2_0
     jadpo 0.4

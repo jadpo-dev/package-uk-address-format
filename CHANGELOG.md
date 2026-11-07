@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- no change to what it offers
+
 ## 1.0.0
 
 - first release
