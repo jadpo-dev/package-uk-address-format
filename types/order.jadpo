@@ -1,0 +1,3 @@
+/// Which of two addresses comes first: below zero the first, above zero
+/// the second, zero neither.
+type Order = Int {}

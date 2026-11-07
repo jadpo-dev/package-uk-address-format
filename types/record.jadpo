@@ -1,0 +1,17 @@
+/// A record's fields as uk-clear-addressing holds them once read: `""`
+/// for one left out or blank, a building number of `0` as `""` with
+/// `merge` set, and the post town in capitals.
+type Record = Object {
+    po_box: Part
+    building_number: Part
+    building_name: Part
+    sub_building_name: Part
+    department_name: Part
+    organisation_name: Part
+    dependant_locality: Part
+    double_dependant_locality: Part
+    thoroughfare: Part
+    dependant_thoroughfare: Part
+    post_town: Part
+    merge: Matches
+}

@@ -1,0 +1,33 @@
+// The natural comparison the sort takes from @cablanchard/koelle-sort 0.1.0,
+// checked as its code behaves.
+
+test "tokeniser: runs of digits and points and of other characters" {
+    assert ordering.tokens("foo12bar13") == ["foo", "12", "bar", "13"]
+    assert ordering.tokens("1.5a") == ["1.5", "a"]
+    assert ordering.tokens("") == []
+}
+
+test "alphanum: runs of digits compare as numbers" {
+    assert ordering.alphanum("2", "10") < 0
+    assert ordering.alphanum("10", "10a") < 0
+    assert ordering.alphanum("190a", "191") < 0
+    assert ordering.alphanum("flat 9", "flat 10") < 0
+}
+
+test "alphanum: equal numbers put the longer first" {
+    assert ordering.alphanum("005", "5") < 0
+    assert ordering.alphanum("5", "005") > 0
+}
+
+test "alphanum: case doesn't count" {
+    assert ordering.alphanum("A", "a") == 0
+    assert ordering.alphanum("b", "A") > 0
+}
+
+test "Number: white space reads as 0, and a point at either end as JavaScript reads it" {
+    assert ordering.number(" ") == 0.000000000000
+    assert ordering.number(".5") == 0.500000000000
+    assert ordering.number("5.") == 5.000000000000
+    assert ordering.number("1.2.3") == none
+    assert ordering.number("abc") == none
+}

@@ -1,0 +1,201 @@
+// The order of a street's addresses, ported from uk-clear-addressing 4.2.1
+// (MIT, Ideal Postcodes), `src/sort.ts`, and the natural comparison it
+// takes from @cablanchard/koelle-sort 0.1.0 (MIT, Christopher Blanchard),
+// `alphanum` and its `tokeniser`. Each function names the one it ports.
+
+/// How two addresses compare, and a stable sort by it.
+library ordering {
+    /// The record's building number, or a building name or sub-building
+    /// name the Exception Rule applies to, which number it in its street
+    /// (`extractIntegerAttribute`).
+    function integer_attribute(r: Record) -> Part {
+        if (rules.exception(r.building_name)) {
+            return r.building_name
+        }
+        if (rules.exception(r.sub_building_name)) {
+            return r.sub_building_name
+        }
+        return r.building_number
+    }
+
+    /// The keys two records are compared by, in order (`sortingElems`).
+    function keys(r: Record) -> List<Part> {
+        return [integer_attribute(r), r.building_name, r.sub_building_name, r.organisation_name, r.department_name, r.po_box]
+    }
+
+    /// How two records compare: by the first key that differs, compared
+    /// naturally (`sort`). Keys that differ only in case compare as equal
+    /// and end the comparison there, as in the original.
+    function compare(a: PafAddress, b: PafAddress) -> Order {
+        var pairs: List<TokenPair> = list.zip_with(keys(rules.read(a)), keys(rules.read(b)), (x, y) -> TokenPair {
+            first: x
+            second: y
+        })
+        for pair in pairs {
+            if (pair.first != pair.second) {
+                return alphanum(pair.first, pair.second)
+            }
+        }
+        return 0
+    }
+
+    /// How two texts compare in their lower case, run by run of digits
+    /// and of other characters, a run of digits as a number (`alphanum`).
+    function alphanum(a: Part, b: Part) -> Order {
+        var left: List<Part> = tokens(Part(text.lower(a)))
+        var right: List<Part> = tokens(Part(text.lower(b)))
+        var pairs: List<TokenPair> = list.zip_with(left, right, (x, y) -> TokenPair {
+            first: x
+            second: y
+        })
+        for pair in pairs {
+            if (pair.first != pair.second) {
+                return compare_tokens(pair.first, pair.second)
+            }
+        }
+        return Order(list.count(left) - list.count(right))
+    }
+
+    /// Two runs compared as numbers where both read as one, the longer
+    /// first when the numbers are equal, otherwise by their characters
+    /// (`compareNumbers` and `compareTokens`).
+    function compare_tokens(a: Part, b: Part) -> Order {
+        match number(a) {
+            some(x) -> {
+                match number(b) {
+                    some(y) -> {
+                        if (x == y) {
+                            return Order(text.length(b) - text.length(a))
+                        }
+                        if (x < y) {
+                            return -1
+                        }
+                        return 1
+                    }
+                    none -> {}
+                }
+            }
+            none -> {}
+        }
+        if (greater(a, b)) {
+            return 1
+        }
+        return -1
+    }
+
+    /// Whether `a` comes after `b`, character by character.
+    function greater(a: Part, b: Part) -> Matches {
+        var first: Part? = list.first(list.sort_by([a, b], part -> part))
+        return Matches(first == b and a != b)
+    }
+
+    /// The number a run reads as, as JavaScript's `Number` reads it: white
+    /// space alone is 0, digits with at most one point are their value,
+    /// anything else isn't a number.
+    function number(token: Part) -> Amount? {
+        if (rules.blank(token)) {
+            return 0.000000000000
+        }
+        return match as_number(token) {
+            success(digits) -> parsed(digits)
+            NoMatch -> none
+        }
+    }
+
+    /// The run as a `NumberText`, if it is one.
+    function as_number(token: Part) fails NoMatch -> NumberText {
+        return attempt NumberText(token) {
+            pattern: NoMatch
+        }
+    }
+
+    /// Digits with at most one point as a number, a point at either end
+    /// read as JavaScript reads it (`.5` is 0.5, `5.` is 5).
+    function parsed(digits: NumberText) -> Amount? {
+        var mut written: Part = Part(digits)
+        if (text.starts_with(written, ".")) {
+            written = Part("0" + written)
+        }
+        if (text.ends_with(written, ".")) {
+            written = Part(text.drop_last(written, 1))
+        }
+        return match read_amount(written) {
+            success(value) -> value
+            NoMatch -> none
+        }
+    }
+
+    /// Text read as an `Amount`.
+    function read_amount(written: Part) fails NoMatch -> Amount {
+        return attempt text.parse(written, as: Amount) {
+            malformed: NoMatch
+        }
+    }
+
+    /// A text's runs of digits and points and of other characters, in
+    /// order (`tokeniser`).
+    function tokens(value: Part) -> List<Part> {
+        if (value == "") {
+            return []
+        }
+        return tokenise(Part(text.drop_first(value, 1)), Part(text.keep_first(value, 1)), [])
+    }
+
+    /// The runs of `rest`, after the run `current` and the runs `done`.
+    function tokenise(rest: Part, current: Part, done: List<Part>) -> List<Part> {
+        if (rest == "") {
+            return list.append(done, current)
+        }
+        var next: Part = Part(text.keep_first(rest, 1))
+        var remaining: Part = Part(text.drop_first(rest, 1))
+        if (numeric(next) == numeric(Part(text.keep_last(current, 1)))) {
+            return tokenise(remaining, Part(current + next), done)
+        }
+        return tokenise(remaining, next, list.append(done, current))
+    }
+
+    /// Whether a character is a digit or a point.
+    function numeric(character: Part) -> Matches {
+        return match as_numeric(character) {
+            success -> true
+            NoMatch -> false
+        }
+    }
+
+    /// The character as a `NumericCharacter`, if it is one.
+    function as_numeric(character: Part) fails NoMatch -> NumericCharacter {
+        return attempt NumericCharacter(character) {
+            pattern: NoMatch
+        }
+    }
+
+    /// The addresses in order, those that compare as equal kept in the
+    /// order they came in: a merge sort, as stable as JavaScript's.
+    function merge_sort(items: List<PafAddress>) -> List<PafAddress> {
+        if (list.count(items) < 2) {
+            return items
+        }
+        var half: Position = Position(list.count(items) / 2)
+        return merge(merge_sort(list.keep_first(items, half)), merge_sort(list.drop_first(items, half)))
+    }
+
+    /// Two sorted lists as one, the left's item first where two compare as
+    /// equal.
+    function merge(left: List<PafAddress>, right: List<PafAddress>) -> List<PafAddress> {
+        var mut out: List<PafAddress> = []
+        var mut taken: Position = 0
+        for a in left {
+            var mut before: Matches = true
+            for b in list.drop_first(right, taken) {
+                if (before and compare(a, b) > 0) {
+                    out = list.append(out, b)
+                    taken = Position(taken + 1)
+                } else {
+                    before = false
+                }
+            }
+            out = list.append(out, a)
+        }
+        return list.concat(out, list.drop_first(right, taken))
+    }
+}

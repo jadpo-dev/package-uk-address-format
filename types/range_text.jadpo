@@ -1,0 +1,4 @@
+/// A range at the end of a building name (`BUILDING_RANGE_REGEX`).
+type RangeText = Text {
+    pattern: "[0-9][^\\n\\r\\x{2028}\\x{2029}]*[^0-9][^\\n\\r\\x{2028}\\x{2029}]*[0-9]|[0-9]+([^\\n\\r\\x{2028}\\x{2029}]*[0-9]+)?[A-Za-z]|[A-Za-z]"
+}

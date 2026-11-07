@@ -1,0 +1,447 @@
+// Royal Mail's Clear Addressing rules for a PAF record's premise, ported
+// from uk-clear-addressing 4.2.1 (MIT, Ideal Postcodes): `src/utils.ts`,
+// `src/rules.ts` and the `Address` constructor in `src/index.ts`. Each
+// function names the one it ports, and keeps its behaviour, quirks
+// included.
+
+/// The rules that lay out a record's premise, street and locality lines.
+library rules {
+    /// Whether text is empty or only white space (`isEmpty`).
+    function blank(value: Part) -> Matches {
+        return match as_blank(value) {
+            success -> true
+            NoMatch -> false
+        }
+    }
+
+    /// The text as a `BlankText`, if it is one.
+    function as_blank(value: Part) fails NoMatch -> BlankText {
+        return attempt BlankText(value) {
+            pattern: NoMatch
+        }
+    }
+
+    /// Whether the Exception Rule applies to a name (`nameException`).
+    function exception(value: Part) -> Matches {
+        return match as_exception(value) {
+            success -> true
+            NoMatch -> false
+        }
+    }
+
+    /// The text as an `ExceptionText`, if it is one.
+    function as_exception(value: Part) fails NoMatch -> ExceptionText {
+        return attempt ExceptionText(value) {
+            pattern: NoMatch
+        }
+    }
+
+    /// Whether text is one letter (`isSingleCharacter`).
+    function single_character(value: Part) -> Matches {
+        return match as_letter(value) {
+            success -> true
+            NoMatch -> false
+        }
+    }
+
+    /// The text as a `LetterText`, if it is one.
+    function as_letter(value: Part) fails NoMatch -> LetterText {
+        return attempt LetterText(value) {
+            pattern: NoMatch
+        }
+    }
+
+    /// Whether a name starts with a unit prefix (`hasUnitPrefix`).
+    function unit_prefixed(value: Part) -> Matches {
+        return match as_unit_prefixed(value) {
+            success -> true
+            NoMatch -> false
+        }
+    }
+
+    /// The text as a `UnitPrefixedText`, if it is one.
+    function as_unit_prefixed(value: Part) fails NoMatch -> UnitPrefixedText {
+        return attempt UnitPrefixedText(value) {
+            pattern: NoMatch
+        }
+    }
+
+    /// Whether the last word of a building name is a range.
+    function range_like(value: Part) -> Matches {
+        return match as_range(value) {
+            success -> true
+            NoMatch -> false
+        }
+    }
+
+    /// The text as a `RangeText`, if it is one.
+    function as_range(value: Part) fails NoMatch -> RangeText {
+        return attempt RangeText(value) {
+            pattern: NoMatch
+        }
+    }
+
+    /// A field as the rules hold it: `""` when it is left out or blank,
+    /// otherwise as written, spaces and all (`extract`).
+    function extract(value: PafText?) -> Part {
+        return match value {
+            some(written) -> held(Part(written))
+            none -> ""
+        }
+    }
+
+    /// A field's text, or `""` when it is only white space.
+    function held(written: Part) -> Part {
+        if (blank(written)) {
+            return ""
+        }
+        return written
+    }
+
+    /// A record as the rules read it (the `Address` constructor): the post
+    /// town in capitals, and a building number of `0` taken as none, with
+    /// the sub-building and building names then kept on one line.
+    function read(source: PafAddress) -> Record {
+        var number: Part = extract(source.building_number)
+        return Record {
+            po_box: extract(source.po_box)
+            building_number: dropped_zero(number)
+            building_name: extract(source.building_name)
+            sub_building_name: extract(source.sub_building_name)
+            department_name: extract(source.department_name)
+            organisation_name: extract(source.organisation_name)
+            dependant_locality: extract(source.dependant_locality)
+            double_dependant_locality: extract(source.double_dependant_locality)
+            thoroughfare: extract(source.thoroughfare)
+            dependant_thoroughfare: extract(source.dependant_thoroughfare)
+            post_town: Part(text.upper(extract(source.post_town)))
+            merge: Matches(number == "0")
+        }
+    }
+
+    /// A building number, with `0` taken as none.
+    function dropped_zero(number: Part) -> Part {
+        if (number == "0") {
+            return ""
+        }
+        return number
+    }
+
+    /// A single letter with a comma after it, anything else as it is
+    /// (`formatElem`).
+    function format_elem(value: Part) -> Part {
+        if (single_character(value)) {
+            return Part(value + ",")
+        }
+        return value
+    }
+
+    /// The localities and thoroughfares that aren't empty, from the widest
+    /// in: dependent locality, double dependent locality, thoroughfare,
+    /// dependent thoroughfare (`premiseLocalities`).
+    function localities(r: Record) -> List<Part> {
+        var all: List<Part> = [r.dependant_locality, r.double_dependant_locality, r.thoroughfare, r.dependant_thoroughfare]
+        return list.filter(all, part -> part != "")
+    }
+
+    /// The elements with `premise` and a space put before the last one
+    /// (`prependLocality`). With no elements, the original writes to index
+    /// `-1` of its array, which isn't one of its items, so the premise is
+    /// lost; this keeps that.
+    function prepend(elements: List<Part>, premise: Part) -> List<Part> {
+        return match list.last(elements) {
+            some(last) -> list.append(list.drop_last(elements, 1), Part(premise + " " + last))
+            none -> elements
+        }
+    }
+
+    /// A building name's last word, when it is a range and the word before
+    /// it isn't one letter, split from the rest (`checkBuildingRange`).
+    function building_range(building_name: Part) -> Split? {
+        var tokens: List<Part> = list.map(text.split(building_name, " "), token -> Part(token))
+        var rest: List<Part> = list.drop_last(tokens, 1)
+        var last_word: Part = match list.last(tokens) {
+            some(last) -> last
+            none -> ""
+        }
+        var before: Part = match list.last(rest) {
+            some(last) -> last
+            none -> ""
+        }
+        if (single_character(before)) {
+            return none
+        }
+        if (range_like(last_word)) {
+            return Split {
+                range: last_word
+                name: Part(text.join(rest, " "))
+            }
+        }
+        return none
+    }
+
+    /// The layout as lines, with the organisation and its department first
+    /// and every line after the second joined onto the third
+    /// (`appendOrganisationInfo` and `combinePremise`).
+    function combine(layout: Layout, r: Record) -> Lines {
+        var mut elements: List<Part> = layout.elements
+        if (r.organisation_name != "") {
+            if (r.department_name != "") {
+                elements = list.append(elements, r.department_name)
+            }
+            elements = list.append(elements, r.organisation_name)
+        }
+        var reversed: List<Part> = list.reverse(elements)
+        return Lines {
+            line_1: or_empty(list.at(reversed, 0))
+            line_2: or_empty(list.at(reversed, 1))
+            line_3: Part(text.join(list.drop_first(reversed, 2), ", "))
+            premise: layout.premise
+            number: layout.number
+            unit: layout.unit
+        }
+    }
+
+    /// A line, or `""` where there is none.
+    function or_empty(line: Part?) -> Part {
+        return match line {
+            some(written) -> written
+            none -> ""
+        }
+    }
+
+    /// Rule 1: no building name, number or sub-building name (`rule1`).
+    function rule1(r: Record) -> Layout {
+        return Layout {
+            elements: localities(r)
+            premise: ""
+            number: ""
+            unit: ""
+        }
+    }
+
+    /// Rule 2: a building number only (`rule2`).
+    function rule2(r: Record) -> Layout {
+        return Layout {
+            elements: prepend(localities(r), r.building_number)
+            premise: r.building_number
+            number: r.building_number
+            unit: ""
+        }
+    }
+
+    /// Rule 3: a building name only (`rule3`). A name the Exception Rule
+    /// applies to goes before the first street or locality; a name ending
+    /// in a range, with no unit prefix, is split, the range going before
+    /// the street.
+    function rule3(r: Record) -> Layout {
+        var name: Part = r.building_name
+        var found: List<Part> = localities(r)
+        if (exception(name)) {
+            return Layout {
+                elements: prepend(found, format_elem(name))
+                premise: name
+                number: name
+                unit: ""
+            }
+        }
+        match building_range(name) {
+            some(split) -> {
+                if (not unit_prefixed(name)) {
+                    return Layout {
+                        elements: list.append(prepend(found, split.range), split.name)
+                        premise: Part(split.name + ", " + split.range)
+                        number: split.range
+                        unit: ""
+                    }
+                }
+            }
+            none -> {}
+        }
+        return Layout {
+            elements: list.append(found, name)
+            premise: name
+            number: ""
+            unit: ""
+        }
+    }
+
+    /// Rule 4: a building name and number (`rule4`).
+    function rule4(r: Record) -> Layout {
+        return Layout {
+            elements: list.append(prepend(localities(r), r.building_number), r.building_name)
+            premise: Part(r.building_name + ", " + r.building_number)
+            number: r.building_number
+            unit: ""
+        }
+    }
+
+    /// Rule 5: a sub-building name and a building number (`rule5`). A
+    /// one-letter sub-building name joins the number, as `12A`.
+    function rule5(r: Record) -> Layout {
+        var found: List<Part> = localities(r)
+        var sub: Part = r.sub_building_name
+        if (single_character(sub)) {
+            var joined: Part = Part(r.building_number + sub)
+            return Layout {
+                elements: prepend(found, joined)
+                premise: joined
+                number: r.building_number
+                unit: sub
+            }
+        }
+        return Layout {
+            elements: list.append(prepend(found, r.building_number), sub)
+            premise: Part(sub + ", " + r.building_number)
+            number: r.building_number
+            unit: sub
+        }
+    }
+
+    /// Rule 6: a sub-building name and a building name (`rule6`).
+    function rule6(r: Record) -> Layout {
+        var sub: Part = r.sub_building_name
+        var name: Part = r.building_name
+        var found: List<Part> = localities(r)
+        if (exception(name)) {
+            return Layout {
+                elements: list.append(prepend(found, name), sub)
+                premise: Part(sub + ", " + name)
+                number: name
+                unit: sub
+            }
+        }
+        match building_range(name) {
+            some(split) -> {
+                if (not unit_prefixed(name)) {
+                    var ranged: List<Part> = prepend(found, split.range)
+                    var premise: Part = Part(sub + ", " + split.name + ", " + split.range)
+                    if (exception(sub)) {
+                        return Layout {
+                            elements: list.append(ranged, Part(format_elem(sub) + " " + split.name))
+                            premise: premise
+                            number: split.range
+                            unit: sub
+                        }
+                    }
+                    return Layout {
+                        elements: list.append(list.append(ranged, split.name), sub)
+                        premise: premise
+                        number: split.range
+                        unit: sub
+                    }
+                }
+            }
+            none -> {}
+        }
+        if (exception(sub)) {
+            var joined: Part = Part(format_elem(sub) + " " + name)
+            return Layout {
+                elements: list.append(found, joined)
+                premise: joined
+                number: ""
+                unit: sub
+            }
+        }
+        var premise: Part = Part(sub + ", " + name)
+        if (r.merge) {
+            return Layout {
+                elements: list.append(found, premise)
+                premise: premise
+                number: ""
+                unit: sub
+            }
+        }
+        return Layout {
+            elements: list.append(list.append(found, name), sub)
+            premise: premise
+            number: ""
+            unit: sub
+        }
+    }
+
+    /// Rule 7: a sub-building name, a building name and a building number
+    /// (`rule7`). Its branch for a building number of `0` can't be reached,
+    /// since that number is read as none and the record goes to rule 6, so
+    /// it isn't ported.
+    function rule7(r: Record) -> Layout {
+        var sub: Part = r.sub_building_name
+        var found: List<Part> = prepend(localities(r), r.building_number)
+        if (exception(sub)) {
+            var joined: Part = Part(format_elem(sub) + " " + r.building_name)
+            return Layout {
+                elements: list.append(found, joined)
+                premise: Part(joined + ", " + r.building_number)
+                number: r.building_number
+                unit: sub
+            }
+        }
+        return Layout {
+            elements: list.append(list.append(found, r.building_name), sub)
+            premise: Part(sub + ", " + r.building_name + ", " + r.building_number)
+            number: r.building_number
+            unit: sub
+        }
+    }
+
+    /// A sub-building name only, which Royal Mail's guide doesn't list but
+    /// some records have (`undocumentedRule`).
+    function undocumented(r: Record) -> Layout {
+        var sub: Part = r.sub_building_name
+        return Layout {
+            elements: prepend(localities(r), sub)
+            premise: sub
+            number: ""
+            unit: sub
+        }
+    }
+
+    /// A PO Box (`po_box`).
+    function po_box(r: Record) -> Layout {
+        var premise: Part = Part("PO Box " + r.po_box)
+        return Layout {
+            elements: list.append(localities(r), premise)
+            premise: premise
+            number: ""
+            unit: ""
+        }
+    }
+
+    /// The rule a record's premise fields choose (`formatter`).
+    function chosen_layout(r: Record) -> Layout {
+        if (r.po_box != "") {
+            return po_box(r)
+        }
+        var has_number: Matches = Matches(r.building_number != "")
+        var has_name: Matches = Matches(r.building_name != "")
+        var has_sub: Matches = Matches(r.sub_building_name != "")
+        if (has_sub and has_name and has_number) {
+            return rule7(r)
+        }
+        if (has_sub and has_name) {
+            return rule6(r)
+        }
+        if (has_sub and has_number) {
+            return rule5(r)
+        }
+        if (has_sub) {
+            return undocumented(r)
+        }
+        if (has_name and has_number) {
+            return rule4(r)
+        }
+        if (has_name) {
+            return rule3(r)
+        }
+        if (has_number) {
+            return rule2(r)
+        }
+        return rule1(r)
+    }
+
+    /// A record's lines, premise, number and unit.
+    function laid_out(source: PafAddress) -> Lines {
+        var r: Record = read(source)
+        return combine(chosen_layout(r), r)
+    }
+}

@@ -1,0 +1,8 @@
+// The package's `sample/` app: the smallest app its recipes compile in, each
+// copied into its one domain, `sample_app`. Nothing runs it.
+application {}
+
+locales {
+    default: Locale.en_gb
+    supported: [Locale.en_gb]
+}

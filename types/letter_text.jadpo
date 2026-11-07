@@ -1,0 +1,4 @@
+/// One letter (`singleCharacterRegex`).
+type LetterText = Text {
+    pattern: "[A-Za-z]"
+}

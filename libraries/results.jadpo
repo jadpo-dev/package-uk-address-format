@@ -1,0 +1,25 @@
+/// Helpers for `paf`'s results.
+library results {
+    /// The post town as an address's locality, none when it is empty.
+    function town_line(town: Part) fails PostTownUnreadable -> PostalAddress.locality {
+        if (town == "") {
+            return none
+        }
+        return attempt PostalAddress.locality(town) {
+            invalid: PostTownUnreadable
+        }
+    }
+
+    /// Text laid out, none when it is empty.
+    function given(part: Part) -> AddressText? {
+        if (part == "") {
+            return none
+        }
+        return AddressText(part)
+    }
+
+    /// The lines that aren't empty.
+    function present(all: List<Part>) -> List<Part> {
+        return list.filter(all, line -> line != "")
+    }
+}

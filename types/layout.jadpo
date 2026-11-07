@@ -1,0 +1,8 @@
+/// What a rule gives: the address's elements from the street up, before
+/// the organisation, and its premise, number and unit.
+type Layout = Object {
+    elements: List<Part>
+    premise: Part
+    number: Part
+    unit: Part
+}

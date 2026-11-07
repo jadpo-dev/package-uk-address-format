@@ -1,0 +1,10 @@
+use shared/providers/uk_address_format
+
+/// The label for a parcel to a Postcode Address File record, as its packer
+/// reads an address.
+action address_label(
+    record: UkAddressFormat.PafAddress
+) fails UkAddressFormat.PostcodeOutsideGb, UkAddressFormat.PostTownUnreadable -> PresentationText {
+    var address: UkAddressFormat.UkAddress = attempt UkAddressFormat.paf.format(record)
+    return text.format(address.postal_address, locale: Locale.en_gb)
+}

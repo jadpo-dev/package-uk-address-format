@@ -1,0 +1,2 @@
+/// Whether a check holds.
+type Matches = Bool {}

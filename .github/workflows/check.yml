@@ -1,0 +1,44 @@
+name: Check
+
+# Runs Jadpo's publishing bar on every push and pull request, and every day against the newest
+# Jadpo release, so a compiler change that breaks this package shows here before anyone installs it.
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '17 6 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # jadpo package check compares a release with the tag before it, so it needs the history.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install the newest Jadpo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          archive=jadpo-cli-x86_64-unknown-linux-gnu.tar.gz
+          work=$(mktemp -d)
+          tag=$(gh release view --repo jadpo-dev/jadpo --json tagName --jq .tagName)
+          gh release download "$tag" --repo jadpo-dev/jadpo --pattern "$archive" --dir "$work"
+          gh attestation verify "$work/$archive" --repo jadpo-dev/jadpo
+          tar -xzf "$work/$archive" -C "$work"
+          mkdir -p "$HOME/.local/bin"
+          install -m 755 "$(find "$work" -type f -name jadpo | head -n 1)" "$HOME/.local/bin/jadpo"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # jadpo test starts its own PostgreSQL from what's on the PATH.
+      - name: Put PostgreSQL on the PATH
+        run: echo "$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -n 1)" >> "$GITHUB_PATH"
+
+      - run: jadpo --version
+      - run: jadpo package check

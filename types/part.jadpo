@@ -1,0 +1,3 @@
+/// A piece of an address while it is laid out; `""` where the record has
+/// none, as uk-clear-addressing holds it.
+type Part = Text {}

@@ -1,0 +1,4 @@
+/// A position in a list, or a count.
+type Position = Int {
+    min: 0
+}

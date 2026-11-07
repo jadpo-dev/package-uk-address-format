@@ -1,0 +1,10 @@
+/// The three lines a layout folds into, with its premise, number and unit
+/// (`FormattedPremise`).
+type Lines = Object {
+    line_1: Part
+    line_2: Part
+    line_3: Part
+    premise: Part
+    number: Part
+    unit: Part
+}

@@ -1,0 +1,9 @@
+/// UK addresses from Royal Mail's Postcode Address File: a record's
+/// fragments laid out as Royal Mail's Clear Addressing guidelines say, as
+/// address lines, a post town and a postcode, with the premise, number and
+/// unit, and sorted as a street's addresses are.
+package UkAddressFormat.v1 {
+    publisher: "@jadpo"
+    licence: Licence.apache_2_0
+    jadpo: "0.4"
+}

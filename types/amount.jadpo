@@ -1,0 +1,5 @@
+/// A number read from a run of digits and points, as JavaScript's `Number`
+/// reads it, to twelve places.
+type Amount = Decimal {
+    scale: 12
+}

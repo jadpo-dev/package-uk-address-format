@@ -1,0 +1,4 @@
+/// One character the sort reads as part of a number: a digit or a point.
+type NumericCharacter = Text {
+    pattern: "[0-9.]"
+}

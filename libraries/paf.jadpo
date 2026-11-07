@@ -1,0 +1,90 @@
+/// Royal Mail's Postcode Address File records, laid out and sorted as
+/// Royal Mail's Clear Addressing guidelines say.
+public library paf {
+    /// A record laid out as an address: its lines, its post town in
+    /// capitals and its postcode, as a `PostalAddress` in Great Britain,
+    /// with the premise, number and unit on their own. A building name
+    /// such as `12A` or `1-2` goes before the street, as Royal Mail's
+    /// Exception Rule says, and a name ending in a range is split.
+    ///
+    /// ```jadpo
+    /// var florist: UkAddress = attempt paf.format(PafAddress {
+    ///     organisation_name: "S D Alcott Florists"
+    ///     building_name: "Flower House 189A"
+    ///     thoroughfare: "Pye Green Road"
+    ///     post_town: "Cannock"
+    ///     postcode: "WS11 5SB"
+    /// })
+    /// assert florist.line_1 == "S D Alcott Florists"
+    /// assert florist.line_2 == "Flower House"
+    /// assert florist.line_3 == "189A Pye Green Road"
+    /// assert florist.premise == "Flower House, 189A"
+    /// assert florist.number == "189A"
+    /// assert florist.unit == none
+    /// assert florist.postal_address.locality == "CANNOCK"
+    /// assert florist.postal_address.lines == ["S D Alcott Florists", "Flower House", "189A Pye Green Road"]
+    /// assert florist.postal_address.postal_code == "WS11 5SB"
+    /// var in_paris: PafAddress = PafAddress {
+    ///     building_number: "16"
+    ///     thoroughfare: "Vixen Road"
+    ///     postcode: "75004"
+    /// }
+    /// assert paf.format(in_paris) fails PostcodeOutsideGb
+    /// var broken_town: PafAddress = PafAddress {
+    ///     building_number: "16"
+    ///     thoroughfare: "Vixen Road"
+    ///     post_town: "BRAD\nOCK"
+    /// }
+    /// assert paf.format(broken_town) fails PostTownUnreadable
+    /// ```
+    function format(record: PafAddress) fails PostcodeOutsideGb, PostTownUnreadable -> UkAddress {
+        var laid_out: Lines = rules.laid_out(record)
+        var town: Part = Part(text.upper(rules.extract(record.post_town)))
+        var locality: PostalAddress.locality = attempt results.town_line(town)
+        var address_lines: List<Text> = list.map(results.present([Part(laid_out.line_1), Part(laid_out.line_2), Part(laid_out.line_3)]), line -> line + "")
+        var postal: PostalAddress = attempt PostalAddress {
+            lines: address_lines
+            locality: locality
+            region: none
+            postal_code: record.postcode
+            country: Country.gb
+        } {
+            postal_code_of_country: PostcodeOutsideGb
+        }
+        return UkAddress {
+            postal_address: postal
+            line_1: results.given(laid_out.line_1)
+            line_2: results.given(laid_out.line_2)
+            line_3: results.given(laid_out.line_3)
+            premise: results.given(laid_out.premise)
+            number: results.given(laid_out.number)
+            unit: results.given(laid_out.unit)
+        }
+    }
+
+    /// The addresses in the order their street numbers them: by building
+    /// number (or a building or sub-building name the Exception Rule
+    /// applies to), then building name, sub-building name, organisation,
+    /// department and PO Box, each compared in its lower case with its
+    /// runs of digits as numbers, so `2` comes before `10` and `10` before
+    /// `10A`. Addresses that compare as equal keep their order.
+    ///
+    /// ```jadpo
+    /// var ten: PafAddress = PafAddress {
+    ///     building_number: "10"
+    ///     thoroughfare: "Elm Road"
+    /// }
+    /// var ten_a: PafAddress = PafAddress {
+    ///     building_name: "10A"
+    ///     thoroughfare: "Elm Road"
+    /// }
+    /// var two: PafAddress = PafAddress {
+    ///     building_number: "2"
+    ///     thoroughfare: "Elm Road"
+    /// }
+    /// assert paf.sorted([ten_a, ten, two]) == [two, ten, ten_a]
+    /// ```
+    function sorted(addresses: List<PafAddress>) -> List<PafAddress> {
+        return ordering.merge_sort(addresses)
+    }
+}

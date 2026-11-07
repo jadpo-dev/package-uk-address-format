@@ -1,0 +1,63 @@
+/// A Postcode Address File record's fragments, as Royal Mail's PAF names
+/// them (with PAF's own spelling, `dependant`). Every field may be left out.
+public type PafAddress = Input {
+    /// The organisation at the address, such as `Cath's Cakes`.
+    organisation_name: PafText? {
+        default: none
+        personal: PersonalData.contact
+    }
+    /// The department of the organisation, such as `Engineering Department`.
+    department_name: PafText? {
+        default: none
+        personal: PersonalData.contact
+    }
+    /// A PO Box number, such as `61`.
+    po_box: PafText? {
+        default: none
+        personal: PersonalData.contact
+    }
+    /// A part of a building, such as `Flat 1` or `A`.
+    sub_building_name: PafText? {
+        default: none
+        personal: PersonalData.contact
+    }
+    /// A building's name, such as `Victoria House`, `1A` or `Unit 1-3`.
+    building_name: PafText? {
+        default: none
+        personal: PersonalData.contact
+    }
+    /// A building's number, such as `16`; `0` means the sub-building and building names are one.
+    building_number: PafText? {
+        default: none
+        personal: PersonalData.contact
+    }
+    /// A street within the thoroughfare, such as `Seastone Court`.
+    dependant_thoroughfare: PafText? {
+        default: none
+        personal: PersonalData.contact
+    }
+    /// The street, such as `Station Road`.
+    thoroughfare: PafText? {
+        default: none
+        personal: PersonalData.contact
+    }
+    /// A small locality within the dependent locality, such as `Tyre Industrial Estate`.
+    double_dependant_locality: PafText? {
+        default: none
+        personal: PersonalData.contact
+    }
+    /// A locality within the post town, such as `Blantyre`.
+    dependant_locality: PafText? {
+        default: none
+        personal: PersonalData.contact
+    }
+    /// The post town, such as `GLASGOW`.
+    post_town: PafText? {
+        default: none
+        personal: PersonalData.contact
+    }
+    /// The postcode, such as `SW1A 1AA`.
+    postcode: PostalCode? {
+        default: none
+    }
+}

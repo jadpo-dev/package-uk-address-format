@@ -1,0 +1,4 @@
+/// The record's postcode isn't in the form of a postcode in Great Britain.
+public type PostcodeOutsideGb = Failure {
+    kind: FailureKind.invalid_value
+}

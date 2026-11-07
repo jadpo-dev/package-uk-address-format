@@ -1,0 +1,8 @@
+/// A name the Exception Rule applies to (`nameExceptionRegex`): its first
+/// and last characters digits, or a digit, maybe more ending in a digit, and
+/// a letter, or one letter. Each pattern here matches what
+/// uk-clear-addressing's JavaScript one does: `.` is any character but a
+/// line terminator, and the `i` flag is spelt out as both cases.
+type ExceptionText = Text {
+    pattern: "[0-9]|[0-9][^\\n\\r\\x{2028}\\x{2029}]*[0-9]|[0-9]([^\\n\\r\\x{2028}\\x{2029}]*[0-9])?[A-Za-z]|[A-Za-z]"
+}

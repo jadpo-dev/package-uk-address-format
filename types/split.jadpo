@@ -1,0 +1,6 @@
+/// A building name split into its name and the range at its end
+/// (`BuildingRangeMatch`).
+type Split = Object {
+    range: Part
+    name: Part
+}

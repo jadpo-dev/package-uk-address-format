@@ -1,0 +1,5 @@
+/// The record's post town can't be one line of an address: it holds a line
+/// break or another control character, or is over 200 characters.
+public type PostTownUnreadable = Failure {
+    kind: FailureKind.invalid_value
+}

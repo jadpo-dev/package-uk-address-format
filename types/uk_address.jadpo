@@ -1,0 +1,33 @@
+/// A Postcode Address File record laid out by Royal Mail's Clear Addressing
+/// rules. `line_1` to `line_3` are the premise and street lines, the third
+/// holding every line after the second, joined by `, `; the postal address
+/// holds those lines, the post town in capitals and the postcode.
+public type UkAddress = Object {
+    /// The address as a `PostalAddress` in Great Britain: the three lines
+    /// that aren't empty, the post town as its locality and the postcode.
+    postal_address: PostalAddress
+    /// The first line: the organisation, else the premise or the street.
+    line_1: AddressText? {
+        personal: PersonalData.contact
+    }
+    /// The second line.
+    line_2: AddressText? {
+        personal: PersonalData.contact
+    }
+    /// The third line, and any after it, joined by `, `.
+    line_3: AddressText? {
+        personal: PersonalData.contact
+    }
+    /// The premise on one line, such as `Flat 1, Holly House` or `12A`.
+    premise: AddressText? {
+        personal: PersonalData.contact
+    }
+    /// The building's number on its street, such as `15`, `1-2` or `12A`.
+    number: AddressText? {
+        personal: PersonalData.contact
+    }
+    /// The part of the building, such as `Flat 20` or `A`.
+    unit: AddressText? {
+        personal: PersonalData.contact
+    }
+}

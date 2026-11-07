@@ -1,0 +1,348 @@
+// uk-clear-addressing's test/rules.utils.unit.ts, test/utils.unit.ts and the
+// constructor cases of test/address.unit.ts (MIT, Ideal Postcodes), against
+// the rules they test. Its unit-prefix cases are made at random from
+// test/data/unit_prefixes.json and a random range, number and letter; here
+// every prefix is checked with each of the forms its generator makes.
+
+test "nameException: true for a name the Exception Rule applies to" {
+    assert rules.exception("12A")
+    assert rules.exception("100:1")
+    assert rules.exception("1to1")
+    assert rules.exception("A")
+    assert rules.exception("a")
+    assert rules.exception("1A")
+    assert rules.exception("1a")
+    assert rules.exception("11A")
+    assert rules.exception("1")
+    assert rules.exception("10")
+    assert rules.exception("100")
+}
+
+test "nameException: false otherwise" {
+    assert not rules.exception("Foo")
+}
+
+test "isSingleCharacter: true for one letter" {
+    assert rules.single_character("A")
+    assert rules.single_character("B")
+    assert rules.single_character("Z")
+    assert rules.single_character("a")
+}
+
+test "isSingleCharacter: false for anything else" {
+    assert not rules.single_character("0")
+    assert not rules.single_character("1")
+    assert not rules.single_character("AZ")
+    assert not rules.single_character("azz")
+    assert not rules.single_character("")
+}
+
+test "checkBuildingRange: a range is split from the name" {
+    assert rules.building_range("foo 12-13") == Split {
+        range: "12-13"
+        name: "foo"
+    }
+}
+
+test "checkBuildingRange: none when there is no range" {
+    assert rules.building_range("foo") == none
+}
+
+test "appendOrganisationInfo: the organisation comes first" {
+    var lines: Lines = rules.combine(Layout {
+        elements: ["foo"]
+        premise: ""
+        number: ""
+        unit: ""
+    }, rules.read(PafAddress {
+        organisation_name: "bar"
+    }))
+    assert lines.line_1 == "bar"
+    assert lines.line_2 == "foo"
+}
+
+test "appendOrganisationInfo: the department comes after the organisation" {
+    var lines: Lines = rules.combine(Layout {
+        elements: ["foo"]
+        premise: ""
+        number: ""
+        unit: ""
+    }, rules.read(PafAddress {
+        organisation_name: "bar"
+        department_name: "baz"
+    }))
+    assert lines.line_1 == "bar"
+    assert lines.line_2 == "baz"
+    assert lines.line_3 == "foo"
+}
+
+test "appendOrganisationInfo: no department without an organisation" {
+    var lines: Lines = rules.combine(Layout {
+        elements: ["foo"]
+        premise: ""
+        number: ""
+        unit: ""
+    }, rules.read(PafAddress {
+        department_name: "baz"
+    }))
+    assert lines.line_1 == "foo"
+    assert lines.line_2 == ""
+}
+
+test "combinePremise: ordered premise labels become an address" {
+    assert rules.combine(Layout {
+        elements: ["foo", "bar", "baz"]
+        premise: "quux"
+        number: "quux"
+        unit: "quux"
+    }, rules.read(PafAddress {})) == Lines {
+        line_1: "baz"
+        line_2: "bar"
+        line_3: "foo"
+        premise: "quux"
+        number: "quux"
+        unit: "quux"
+    }
+}
+
+test "combinePremise: empty second and third lines when there is one label" {
+    assert rules.combine(Layout {
+        elements: ["foo"]
+        premise: "quux"
+        number: "quux"
+        unit: "quux"
+    }, rules.read(PafAddress {})) == Lines {
+        line_1: "foo"
+        line_2: ""
+        line_3: ""
+        premise: "quux"
+        number: "quux"
+        unit: "quux"
+    }
+}
+
+test "combinePremise: more than three labels are joined on the third line" {
+    var lines: Lines = rules.combine(Layout {
+        elements: ["qux", "foo", "bar", "baz"]
+        premise: "quux"
+        number: "quux"
+        unit: "quux"
+    }, rules.read(PafAddress {}))
+    assert lines.line_1 == "baz"
+    assert lines.line_2 == "bar"
+    assert lines.line_3 == "foo, qux"
+}
+
+test "combinePremise: the organisation takes precedence" {
+    var lines: Lines = rules.combine(Layout {
+        elements: ["foo"]
+        premise: "quux"
+        number: "quux"
+        unit: "quux"
+    }, rules.read(PafAddress {
+        organisation_name: "baz ltd"
+    }))
+    assert lines.line_1 == "baz ltd"
+    assert lines.line_2 == "foo"
+    assert lines.line_3 == ""
+}
+
+test "combinePremise: no labels give empty lines" {
+    assert rules.combine(Layout {
+        elements: []
+        premise: ""
+        number: ""
+        unit: ""
+    }, rules.read(PafAddress {})) == Lines {
+        line_1: ""
+        line_2: ""
+        line_3: ""
+        premise: ""
+        number: ""
+        unit: ""
+    }
+}
+
+test "premiseLocalities: localities from the widest in" {
+    assert rules.localities(rules.read(PafAddress {
+        double_dependant_locality: "bar"
+        dependant_locality: "foo"
+        dependant_thoroughfare: "quux"
+        thoroughfare: "baz"
+    })) == ["foo", "bar", "baz", "quux"]
+}
+
+test "premiseLocalities: empty localities are left out" {
+    assert rules.localities(rules.read(PafAddress {
+        double_dependant_locality: "bar"
+        dependant_locality: ""
+        thoroughfare: " "
+    })) == ["bar"]
+}
+
+test "prependLocality: with no localities the premise is lost, as in the original" {
+    var address: Layout = rules.chosen_layout(rules.read(PafAddress {
+        building_number: "8"
+    }))
+    assert address.elements == []
+    assert address.premise == "8"
+}
+
+test "formatElem: anything but one letter as it is" {
+    assert rules.format_elem("1A") == "1A"
+}
+
+test "formatElem: one letter with a comma after it" {
+    assert rules.format_elem("A") == "A,"
+}
+
+test "hasUnitPrefix: true for a name starting with a unit prefix" {
+    assert rules.unit_prefixed("Back of 12-17")
+    assert rules.unit_prefixed("Back of 45C")
+    assert rules.unit_prefixed("Back of 7")
+    assert rules.unit_prefixed("Back of 0-9")
+    assert rules.unit_prefixed("Back of 99P")
+    assert rules.unit_prefixed("Block 12-17")
+    assert rules.unit_prefixed("Block 45C")
+    assert rules.unit_prefixed("Block 7")
+    assert rules.unit_prefixed("Block 0-9")
+    assert rules.unit_prefixed("Block 99P")
+    assert rules.unit_prefixed("Blocks 12-17")
+    assert rules.unit_prefixed("Blocks 45C")
+    assert rules.unit_prefixed("Blocks 7")
+    assert rules.unit_prefixed("Blocks 0-9")
+    assert rules.unit_prefixed("Blocks 99P")
+    assert rules.unit_prefixed("Building 12-17")
+    assert rules.unit_prefixed("Building 45C")
+    assert rules.unit_prefixed("Building 7")
+    assert rules.unit_prefixed("Building 0-9")
+    assert rules.unit_prefixed("Building 99P")
+    assert rules.unit_prefixed("Maisonette 12-17")
+    assert rules.unit_prefixed("Maisonette 45C")
+    assert rules.unit_prefixed("Maisonette 7")
+    assert rules.unit_prefixed("Maisonette 0-9")
+    assert rules.unit_prefixed("Maisonette 99P")
+    assert rules.unit_prefixed("Maisonettes 12-17")
+    assert rules.unit_prefixed("Maisonettes 45C")
+    assert rules.unit_prefixed("Maisonettes 7")
+    assert rules.unit_prefixed("Maisonettes 0-9")
+    assert rules.unit_prefixed("Maisonettes 99P")
+    assert rules.unit_prefixed("Rear of 12-17")
+    assert rules.unit_prefixed("Rear of 45C")
+    assert rules.unit_prefixed("Rear of 7")
+    assert rules.unit_prefixed("Rear of 0-9")
+    assert rules.unit_prefixed("Rear of 99P")
+    assert rules.unit_prefixed("Shop 12-17")
+    assert rules.unit_prefixed("Shop 45C")
+    assert rules.unit_prefixed("Shop 7")
+    assert rules.unit_prefixed("Shop 0-9")
+    assert rules.unit_prefixed("Shop 99P")
+    assert rules.unit_prefixed("Shops 12-17")
+    assert rules.unit_prefixed("Shops 45C")
+    assert rules.unit_prefixed("Shops 7")
+    assert rules.unit_prefixed("Shops 0-9")
+    assert rules.unit_prefixed("Shops 99P")
+    assert rules.unit_prefixed("Stall 12-17")
+    assert rules.unit_prefixed("Stall 45C")
+    assert rules.unit_prefixed("Stall 7")
+    assert rules.unit_prefixed("Stall 0-9")
+    assert rules.unit_prefixed("Stall 99P")
+    assert rules.unit_prefixed("Stalls 12-17")
+    assert rules.unit_prefixed("Stalls 45C")
+    assert rules.unit_prefixed("Stalls 7")
+    assert rules.unit_prefixed("Stalls 0-9")
+    assert rules.unit_prefixed("Stalls 99P")
+    assert rules.unit_prefixed("Suite 12-17")
+    assert rules.unit_prefixed("Suite 45C")
+    assert rules.unit_prefixed("Suite 7")
+    assert rules.unit_prefixed("Suite 0-9")
+    assert rules.unit_prefixed("Suite 99P")
+    assert rules.unit_prefixed("Suites 12-17")
+    assert rules.unit_prefixed("Suites 45C")
+    assert rules.unit_prefixed("Suites 7")
+    assert rules.unit_prefixed("Suites 0-9")
+    assert rules.unit_prefixed("Suites 99P")
+    assert rules.unit_prefixed("Unit 12-17")
+    assert rules.unit_prefixed("Unit 45C")
+    assert rules.unit_prefixed("Unit 7")
+    assert rules.unit_prefixed("Unit 0-9")
+    assert rules.unit_prefixed("Unit 99P")
+    assert rules.unit_prefixed("Units 12-17")
+    assert rules.unit_prefixed("Units 45C")
+    assert rules.unit_prefixed("Units 7")
+    assert rules.unit_prefixed("Units 0-9")
+    assert rules.unit_prefixed("Units 99P")
+    assert rules.unit_prefixed("Back of 10A")
+}
+
+test "hasUnitPrefix: false for a building number" {
+    assert not rules.unit_prefixed("12-17")
+    assert not rules.unit_prefixed("45C")
+    assert not rules.unit_prefixed("7")
+    assert not rules.unit_prefixed("0-9")
+    assert not rules.unit_prefixed("99P")
+    assert not rules.unit_prefixed("1-3")
+    assert not rules.unit_prefixed("10A")
+    assert not rules.unit_prefixed("99")
+    assert not rules.unit_prefixed("3")
+}
+
+test "extract: none, a blank field and a spaced field are empty" {
+    assert rules.extract(none) == ""
+    assert rules.extract("") == ""
+    assert rules.extract("    ") == ""
+}
+
+test "extract: a field is kept as written" {
+    assert rules.extract("bar") == "bar"
+    assert rules.extract(" bar") == " bar"
+}
+
+test "isEmpty: empty and spaced text are empty" {
+    assert rules.blank("")
+    assert rules.blank("  ")
+    assert not rules.blank("foo")
+}
+
+test "Address: a building number of 0 is none, and the names merge" {
+    var read: Record = rules.read(PafAddress {
+        building_number: "0"
+    })
+    assert read.building_number == ""
+    assert read.merge
+}
+
+test "Address: the fields are kept as given" {
+    var read: Record = rules.read(PafAddress {
+        postcode: "SW1A 1AA"
+        post_town: "POST_TOWN"
+        dependant_locality: "dependant_locality"
+        double_dependant_locality: "double_dependant_locality"
+        thoroughfare: "thoroughfare"
+        dependant_thoroughfare: "dependant_thoroughfare"
+        building_number: "building_number"
+        building_name: "building_name"
+        sub_building_name: "sub_building_name"
+        po_box: "po_box"
+        department_name: "department_name"
+        organisation_name: "organisation_name"
+    })
+    assert read.post_town == "POST_TOWN"
+    assert read.dependant_locality == "dependant_locality"
+    assert read.double_dependant_locality == "double_dependant_locality"
+    assert read.thoroughfare == "thoroughfare"
+    assert read.dependant_thoroughfare == "dependant_thoroughfare"
+    assert read.building_number == "building_number"
+    assert read.building_name == "building_name"
+    assert read.sub_building_name == "sub_building_name"
+    assert read.po_box == "po_box"
+    assert read.department_name == "department_name"
+    assert read.organisation_name == "organisation_name"
+    assert not read.merge
+}
+
+test "Address: the post town is in capitals" {
+    assert rules.read(PafAddress {
+        post_town: "foo"
+    }).post_town == "FOO"
+}

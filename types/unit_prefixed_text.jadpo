@@ -1,0 +1,5 @@
+/// A name starting with a unit prefix (`unitPrefixRegex`), such as
+/// `Unit`, `Shops` or `Rear of`, with no word break needed after it.
+type UnitPrefixedText = Text {
+    pattern: "([Bb][Aa][Cc][Kk][\\t\\n\\x{0B}\\f\\r \\x{A0}\\x{1680}\\x{2000}-\\x{200A}\\x{2028}\\x{2029}\\x{202F}\\x{205F}\\x{3000}\\x{FEFF}][Oo][Ff]|[Bb][Ll][Oo][Cc][Kk][Ss]?|[Bb][Uu][Ii][Ll][Dd][Ii][Nn][Gg]|[Mm][Aa][Ii][Ss][Oo][Nn][Ee][Tt][Tt][Ee][Ss]?|[Rr][Ee][Aa][Rr][\\t\\n\\x{0B}\\f\\r \\x{A0}\\x{1680}\\x{2000}-\\x{200A}\\x{2028}\\x{2029}\\x{202F}\\x{205F}\\x{3000}\\x{FEFF}][Oo][Ff]|[Ss][Hh][Oo][Pp][Ss]?|[Ss][Tt][Aa][Ll][Ll][Ss]?|[Ss][Uu][Ii][Tt][Ee][Ss]?|[Uu][Nn][Ii][Tt][Ss]?)[\\s\\S]*"
+}

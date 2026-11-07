@@ -1,0 +1,4 @@
+/// Why a pattern didn't match, inside the rules only.
+type NoMatch = Failure {
+    kind: FailureKind.invalid_value
+}

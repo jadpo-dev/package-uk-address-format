@@ -1,0 +1,6 @@
+/// Two texts compared side by side: a token of each name, or a sort key of
+/// each address.
+type TokenPair = Object {
+    first: Part
+    second: Part
+}

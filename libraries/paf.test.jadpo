@@ -1,0 +1,2379 @@
+// Royal Mail's examples, as uk-clear-addressing's test/data/formatting.json
+// holds them (MIT, Ideal Postcodes), each checked as its
+// test/formatting.unit.ts checks it: the three lines, the post town, the
+// postcode, the premise and the number. Generated from that file.
+
+test "Rule 7 (1): (Smith)" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "(Smith)"
+        building_name: "Rose Cottage"
+        thoroughfare: "Packhouse Lane"
+        post_town: "BIRMINGHAM"
+        postcode: "B39 0DH"
+    })
+    assert address.line_1 == "(Smith)"
+    assert address.line_2 == "Rose Cottage"
+    assert address.line_3 == "Packhouse Lane"
+    assert address.premise == "(Smith), Rose Cottage"
+    assert address.number == none
+    assert address.postal_address.locality == "BIRMINGHAM"
+    assert address.postal_address.postal_code == "B39 0DH"
+}
+
+test "Rule 1 (2): (Hynes)" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_name: "(Hynes)"
+        thoroughfare: "Crompton Road"
+        post_town: "BRADLEY HEATH"
+        postcode: "S64 5BB"
+    })
+    assert address.line_1 == "(Hynes)"
+    assert address.line_2 == "Crompton Road"
+    assert address.line_3 == none
+    assert address.premise == "(Hynes)"
+    assert address.number == none
+    assert address.postal_address.locality == "BRADLEY HEATH"
+    assert address.postal_address.postal_code == "S64 5BB"
+}
+
+test "Rule 2 (3): 16 Vixen Road" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_number: "16"
+        thoroughfare: "Vixen Road"
+        post_town: "BRADOCK"
+        postcode: "KT6 5BT"
+    })
+    assert address.line_1 == "16 Vixen Road"
+    assert address.line_2 == none
+    assert address.line_3 == none
+    assert address.premise == "16"
+    assert address.number == "16"
+    assert address.postal_address.locality == "BRADOCK"
+    assert address.postal_address.postal_code == "KT6 5BT"
+}
+
+test "Rule 2 (4): Cath's Cakes" {
+    // P01 1AF isn't a postcode in Great Britain's form, so the address
+    // fails; its lines are checked without it.
+    var as_given: PafAddress = PafAddress {
+        organisation_name: "Cath's Cakes"
+        building_name: "Victoria House"
+        thoroughfare: "High Street"
+        post_town: "PORTSMOUTH"
+        postcode: "P01 1AF"
+    }
+    assert paf.format(as_given) fails PostcodeOutsideGb
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "Cath's Cakes"
+        building_name: "Victoria House"
+        thoroughfare: "High Street"
+        post_town: "PORTSMOUTH"
+    })
+    assert address.line_1 == "Cath's Cakes"
+    assert address.line_2 == "Victoria House"
+    assert address.line_3 == "High Street"
+    assert address.premise == "Victoria House"
+    assert address.number == none
+    assert address.postal_address.locality == "PORTSMOUTH"
+}
+
+test "Rule 6: Merge sub and building (5): Flat 1, Holly House" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Flat 1"
+        building_name: "Holly House"
+        building_number: "0"
+        thoroughfare: "Oak Avenue"
+        dependant_locality: "Biddenden"
+        post_town: "ASHFORD"
+        postcode: "TN27 8BT"
+    })
+    assert address.line_1 == "Flat 1, Holly House"
+    assert address.line_2 == "Oak Avenue"
+    assert address.line_3 == "Biddenden"
+    assert address.premise == "Flat 1, Holly House"
+    assert address.number == none
+    assert address.postal_address.locality == "ASHFORD"
+    assert address.postal_address.postal_code == "TN27 8BT"
+}
+
+test "Rule 7 (6): Flat 20" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Flat 20"
+        building_name: "Victoria House"
+        building_number: "15"
+        thoroughfare: "The Street"
+        post_town: "CHRISTCHURCH"
+        postcode: "BH23 6AA"
+    })
+    assert address.line_1 == "Flat 20"
+    assert address.line_2 == "Victoria House"
+    assert address.line_3 == "15 The Street"
+    assert address.premise == "Flat 20, Victoria House, 15"
+    assert address.number == "15"
+    assert address.postal_address.locality == "CHRISTCHURCH"
+    assert address.postal_address.postal_code == "BH23 6AA"
+}
+
+test "Rule 6 (7): Caretakers Flat" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Caretakers Flat"
+        building_name: "110-114"
+        thoroughfare: "High Street West"
+        post_town: "BRISTOL"
+        postcode: "BS1 2AW"
+    })
+    assert address.line_1 == "Caretakers Flat"
+    assert address.line_2 == "110-114 High Street West"
+    assert address.line_3 == none
+    assert address.premise == "Caretakers Flat, 110-114"
+    assert address.number == "110-114"
+    assert address.postal_address.locality == "BRISTOL"
+    assert address.postal_address.postal_code == "BS1 2AW"
+}
+
+test "Rule 2 (8): 16 Angelica Way" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_number: "16"
+        thoroughfare: "Angelica Way"
+        post_town: "EMSWORTH"
+        postcode: "NR25 7HG"
+    })
+    assert address.line_1 == "16 Angelica Way"
+    assert address.line_2 == none
+    assert address.line_3 == none
+    assert address.premise == "16"
+    assert address.number == "16"
+    assert address.postal_address.locality == "EMSWORTH"
+    assert address.postal_address.postal_code == "NR25 7HG"
+}
+
+test "Rule 2 (9): O'Neills" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "O'Neills"
+        building_number: "37"
+        thoroughfare: "George Street"
+        post_town: "OXFORD"
+        postcode: "OX1 2AY"
+    })
+    assert address.line_1 == "O'Neills"
+    assert address.line_2 == "37 George Street"
+    assert address.line_3 == none
+    assert address.premise == "37"
+    assert address.number == "37"
+    assert address.postal_address.locality == "OXFORD"
+    assert address.postal_address.postal_code == "OX1 2AY"
+}
+
+test "Rule 3 (10): The Manor" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_name: "The Manor"
+        dependant_locality: "Norwood"
+        post_town: "HORLEY"
+        postcode: "RH6 0HP"
+    })
+    assert address.line_1 == "The Manor"
+    assert address.line_2 == "Norwood"
+    assert address.line_3 == none
+    assert address.premise == "The Manor"
+    assert address.number == none
+    assert address.postal_address.locality == "HORLEY"
+    assert address.postal_address.postal_code == "RH6 0HP"
+}
+
+test "PO Box (11): PO Box 61" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        po_box: "61"
+        post_town: "FAREHAM"
+        postcode: "PO14 1UX"
+    })
+    assert address.line_1 == "PO Box 61"
+    assert address.line_2 == none
+    assert address.line_3 == none
+    assert address.premise == "PO Box 61"
+    assert address.number == none
+    assert address.postal_address.locality == "FAREHAM"
+    assert address.postal_address.postal_code == "PO14 1UX"
+}
+
+test "PO Box (12): PO Box 22" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        po_box: "22"
+        post_town: "FAREHAM"
+        postcode: "PO14 3XH"
+    })
+    assert address.line_1 == "PO Box 22"
+    assert address.line_2 == none
+    assert address.line_3 == none
+    assert address.premise == "PO Box 22"
+    assert address.number == none
+    assert address.postal_address.locality == "FAREHAM"
+    assert address.postal_address.postal_code == "PO14 3XH"
+}
+
+test "Rule 3 (13): Britannia Park Veterinary Centre" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "Britannia Park Veterinary Centre"
+        building_name: "Unit 60"
+        building_number: " "
+        thoroughfare: "Britannia Way"
+        dependant_locality: "Britannia Enterprise Park"
+        post_town: "LICHFIELD"
+        postcode: "WS14 9UY"
+    })
+    assert address.line_1 == "Britannia Park Veterinary Centre"
+    assert address.line_2 == "Unit 60"
+    assert address.line_3 == "Britannia Way, Britannia Enterprise Park"
+    assert address.premise == "Unit 60"
+    assert address.number == none
+    assert address.postal_address.locality == "LICHFIELD"
+    assert address.postal_address.postal_code == "WS14 9UY"
+}
+
+test "Rule 1 (14): Leda Engineering Ltd" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "Leda Engineering Ltd"
+        dependant_locality: "Appleford"
+        post_town: "ABINGDON"
+        postcode: "OX14 4PG"
+    })
+    assert address.line_1 == "Leda Engineering Ltd"
+    assert address.line_2 == "Appleford"
+    assert address.line_3 == none
+    assert address.premise == none
+    assert address.number == none
+    assert address.postal_address.locality == "ABINGDON"
+    assert address.postal_address.postal_code == "OX14 4PG"
+}
+
+test "Rule 1 (15): Leda Engineering Ltd" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "Leda Engineering Ltd"
+        department_name: "Engineering Department"
+        dependant_locality: "Appleford"
+        post_town: "ABINGDON"
+        postcode: "OX14 4PG"
+    })
+    assert address.line_1 == "Leda Engineering Ltd"
+    assert address.line_2 == "Engineering Department"
+    assert address.line_3 == "Appleford"
+    assert address.premise == none
+    assert address.number == none
+    assert address.postal_address.locality == "ABINGDON"
+    assert address.postal_address.postal_code == "OX14 4PG"
+}
+
+test "Rule 2 (16): 1 Acacia Avenue" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_number: "1"
+        thoroughfare: "Acacia Avenue"
+        post_town: "ABINGDON"
+        postcode: "OX14 4PG"
+    })
+    assert address.line_1 == "1 Acacia Avenue"
+    assert address.line_2 == none
+    assert address.line_3 == none
+    assert address.premise == "1"
+    assert address.number == "1"
+    assert address.postal_address.locality == "ABINGDON"
+    assert address.postal_address.postal_code == "OX14 4PG"
+}
+
+test "Rule 2 (17): 1 Locality Name" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_number: "1"
+        dependant_locality: "Locality Name"
+        post_town: "ABINGDON"
+        postcode: "OX14 4PG"
+    })
+    assert address.line_1 == "1 Locality Name"
+    assert address.line_2 == none
+    assert address.line_3 == none
+    assert address.premise == "1"
+    assert address.number == "1"
+    assert address.postal_address.locality == "ABINGDON"
+    assert address.postal_address.postal_code == "OX14 4PG"
+}
+
+test "Rule 2 (18): 1 Dep Locality Name" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_number: "1"
+        double_dependant_locality: "Dep Locality Name"
+        dependant_locality: "Locality Name"
+        post_town: "ABINGDON"
+        postcode: "OX14 4PG"
+    })
+    assert address.line_1 == "1 Dep Locality Name"
+    assert address.line_2 == "Locality Name"
+    assert address.line_3 == none
+    assert address.premise == "1"
+    assert address.number == "1"
+    assert address.postal_address.locality == "ABINGDON"
+    assert address.postal_address.postal_code == "OX14 4PG"
+}
+
+test "Rule 2 (19): 1 Acacia Avenue" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_number: "1"
+        thoroughfare: "Acacia Avenue"
+        double_dependant_locality: "Dep Locality Name"
+        dependant_locality: "Locality Name"
+        post_town: "ABINGDON"
+        postcode: "OX14 4PG"
+    })
+    assert address.line_1 == "1 Acacia Avenue"
+    assert address.line_2 == "Dep Locality Name"
+    assert address.line_3 == "Locality Name"
+    assert address.premise == "1"
+    assert address.number == "1"
+    assert address.postal_address.locality == "ABINGDON"
+    assert address.postal_address.postal_code == "OX14 4PG"
+}
+
+test "Rule 3 (20): 1A Seastone Court" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_name: "1A"
+        dependant_thoroughfare: "Seastone Court"
+        thoroughfare: "Station Road"
+        post_town: "HOLT"
+        postcode: "NR25 7HG"
+    })
+    assert address.line_1 == "1A Seastone Court"
+    assert address.line_2 == "Station Road"
+    assert address.line_3 == none
+    assert address.premise == "1A"
+    assert address.number == "1A"
+    assert address.postal_address.locality == "HOLT"
+    assert address.postal_address.postal_code == "NR25 7HG"
+}
+
+test "Rule 3 (21): 1a Seastone Court" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_name: "1a"
+        dependant_thoroughfare: "Seastone Court"
+        thoroughfare: "Station Road"
+        post_town: "HOLT"
+        postcode: "NR25 7HG"
+    })
+    assert address.line_1 == "1a Seastone Court"
+    assert address.line_2 == "Station Road"
+    assert address.line_3 == none
+    assert address.premise == "1a"
+    assert address.number == "1a"
+    assert address.postal_address.locality == "HOLT"
+    assert address.postal_address.postal_code == "NR25 7HG"
+}
+
+test "Rule 3 (22): Imperial Candles" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "Imperial Candles"
+        building_name: "Unit 3-4"
+        dependant_thoroughfare: "Dalehouse Lane Industrial Estate"
+        thoroughfare: "Cotton Drive"
+        post_town: "KENILWORTH"
+        postcode: "CV8 2UE"
+    })
+    assert address.line_1 == "Imperial Candles"
+    assert address.line_2 == "Unit 3-4"
+    assert address.line_3 == "Dalehouse Lane Industrial Estate, Cotton Drive"
+    assert address.premise == "Unit 3-4"
+    assert address.number == none
+    assert address.postal_address.locality == "KENILWORTH"
+    assert address.postal_address.postal_code == "CV8 2UE"
+}
+
+test "Rule 3 (23): The Manor" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_name: "The Manor"
+        thoroughfare: "Upper Hill"
+        post_town: "HORLEY"
+        postcode: "RH6 0HP"
+    })
+    assert address.line_1 == "The Manor"
+    assert address.line_2 == "Upper Hill"
+    assert address.line_3 == none
+    assert address.premise == "The Manor"
+    assert address.number == none
+    assert address.postal_address.locality == "HORLEY"
+    assert address.postal_address.postal_code == "RH6 0HP"
+}
+
+test "Rule 3 (24): S D Alcott Florists" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "S D Alcott Florists"
+        building_name: "Flower House 189a"
+        thoroughfare: "Pye Green Road"
+        post_town: "CANNOCK"
+        postcode: "WS11 5SB"
+    })
+    assert address.line_1 == "S D Alcott Florists"
+    assert address.line_2 == "Flower House"
+    assert address.line_3 == "189a Pye Green Road"
+    assert address.premise == "Flower House, 189a"
+    assert address.number == "189a"
+    assert address.postal_address.locality == "CANNOCK"
+    assert address.postal_address.postal_code == "WS11 5SB"
+}
+
+test "Rule 3 (25): S D Alcott Florists" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "S D Alcott Florists"
+        building_name: "Flower House 189A"
+        thoroughfare: "Pye Green Road"
+        post_town: "CANNOCK"
+        postcode: "WS11 5SB"
+    })
+    assert address.line_1 == "S D Alcott Florists"
+    assert address.line_2 == "Flower House"
+    assert address.line_3 == "189A Pye Green Road"
+    assert address.premise == "Flower House, 189A"
+    assert address.number == "189A"
+    assert address.postal_address.locality == "CANNOCK"
+    assert address.postal_address.postal_code == "WS11 5SB"
+}
+
+test "Rule 3 (26): James Villa Holidays" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "James Villa Holidays"
+        building_name: "Centre 30"
+        thoroughfare: "St. Laurence Avenue"
+        post_town: "GRAFTON"
+        postcode: "ME16 0LP"
+    })
+    assert address.line_1 == "James Villa Holidays"
+    assert address.line_2 == "Centre 30"
+    assert address.line_3 == "St. Laurence Avenue"
+    assert address.premise == "Centre 30"
+    assert address.number == none
+    assert address.postal_address.locality == "GRAFTON"
+    assert address.postal_address.postal_code == "ME16 0LP"
+}
+
+test "Rule 4 (27): Victoria House" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_name: "Victoria House"
+        building_number: "15"
+        thoroughfare: "The Street"
+        post_town: "CHRISTCHURCH"
+        postcode: "BH23 6AA"
+    })
+    assert address.line_1 == "Victoria House"
+    assert address.line_2 == "15 The Street"
+    assert address.line_3 == none
+    assert address.premise == "Victoria House, 15"
+    assert address.number == "15"
+    assert address.postal_address.locality == "CHRISTCHURCH"
+    assert address.postal_address.postal_code == "BH23 6AA"
+}
+
+test "Rule 5 (28): Flat 1" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Flat 1"
+        building_number: "12"
+        thoroughfare: "Lime Tree Avenue"
+        post_town: "BRISTOL"
+        postcode: "BS8 4AB"
+    })
+    assert address.line_1 == "Flat 1"
+    assert address.line_2 == "12 Lime Tree Avenue"
+    assert address.line_3 == none
+    assert address.premise == "Flat 1, 12"
+    assert address.number == "12"
+    assert address.postal_address.locality == "BRISTOL"
+    assert address.postal_address.postal_code == "BS8 4AB"
+}
+
+test "Rule 5 (29): 12A High Street North" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "A"
+        building_number: "12"
+        thoroughfare: "High Street North"
+        dependant_locality: "Coombe Bissett"
+        post_town: "SALISBURY"
+        postcode: "SP5 4NA"
+    })
+    assert address.line_1 == "12A High Street North"
+    assert address.line_2 == "Coombe Bissett"
+    assert address.line_3 == none
+    assert address.premise == "12A"
+    assert address.number == "12"
+    assert address.postal_address.locality == "SALISBURY"
+    assert address.postal_address.postal_code == "SP5 4NA"
+}
+
+test "Rule 6 - Building name sub range match (30): Flat 8" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Flat 8"
+        building_name: "Oxford House 110-114"
+        thoroughfare: "High Street"
+        post_town: "BRISTOL"
+        postcode: "BS1 2AW"
+    })
+    assert address.line_1 == "Flat 8"
+    assert address.line_2 == "Oxford House"
+    assert address.line_3 == "110-114 High Street"
+    assert address.premise == "Flat 8, Oxford House, 110-114"
+    assert address.number == "110-114"
+    assert address.postal_address.locality == "BRISTOL"
+    assert address.postal_address.postal_code == "BS1 2AW"
+}
+
+test "Rule 6 (31): 10B Barry Jackson Tower" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "10B"
+        building_name: "Barry Jackson Tower"
+        thoroughfare: "Estone Walk"
+        post_town: "BIRMINGHAM"
+        postcode: "B6 5BA"
+    })
+    assert address.line_1 == "10B Barry Jackson Tower"
+    assert address.line_2 == "Estone Walk"
+    assert address.line_3 == none
+    assert address.premise == "10B Barry Jackson Tower"
+    assert address.number == none
+    assert address.postal_address.locality == "BIRMINGHAM"
+    assert address.postal_address.postal_code == "B6 5BA"
+}
+
+test "Rule 6 (32): Caretakers Flat" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Caretakers Flat"
+        building_name: "110-114"
+        thoroughfare: "High Street West"
+        post_town: "BRISTOL"
+        postcode: "BS1 2AW"
+    })
+    assert address.line_1 == "Caretakers Flat"
+    assert address.line_2 == "110-114 High Street West"
+    assert address.line_3 == none
+    assert address.premise == "Caretakers Flat, 110-114"
+    assert address.number == "110-114"
+    assert address.postal_address.locality == "BRISTOL"
+    assert address.postal_address.postal_code == "BS1 2AW"
+}
+
+test "Rule 6 (33): Stables Flat" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Stables Flat"
+        building_name: "The Manor"
+        thoroughfare: "Upper Hill"
+        post_town: "HORLEY"
+        postcode: "RH6 0HP"
+    })
+    assert address.line_1 == "Stables Flat"
+    assert address.line_2 == "The Manor"
+    assert address.line_3 == "Upper Hill"
+    assert address.premise == "Stables Flat, The Manor"
+    assert address.number == none
+    assert address.postal_address.locality == "HORLEY"
+    assert address.postal_address.postal_code == "RH6 0HP"
+}
+
+test "Undocumented Rule (34): 20gf Belgrave Crescent" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "20gf"
+        building_number: " "
+        thoroughfare: "Belgrave Crescent"
+        post_town: "EDINBURGH"
+        postcode: "EH4 3AJ"
+    })
+    assert address.line_1 == "20gf Belgrave Crescent"
+    assert address.line_2 == none
+    assert address.line_3 == none
+    assert address.premise == "20gf"
+    assert address.number == none
+    assert address.postal_address.locality == "EDINBURGH"
+    assert address.postal_address.postal_code == "EH4 3AJ"
+}
+
+test "Rule 7 (35): 2B The Tower" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "2B"
+        building_name: "The Tower"
+        building_number: "27"
+        thoroughfare: "John Street"
+        post_town: "WINCHESTER"
+        postcode: "SO23 9AP"
+    })
+    assert address.line_1 == "2B The Tower"
+    assert address.line_2 == "27 John Street"
+    assert address.line_3 == none
+    assert address.premise == "2B The Tower, 27"
+    assert address.number == "27"
+    assert address.postal_address.locality == "WINCHESTER"
+    assert address.postal_address.postal_code == "SO23 9AP"
+}
+
+test "Rule 7 (36): Basement Flat" {
+    // BP23 6AA isn't a postcode in Great Britain's form, so the address
+    // fails; its lines are checked without it.
+    var as_given: PafAddress = PafAddress {
+        sub_building_name: "Basement Flat"
+        building_name: "Victoria House"
+        building_number: "15"
+        thoroughfare: "The Street"
+        post_town: "CORYTON"
+        postcode: "BP23 6AA"
+    }
+    assert paf.format(as_given) fails PostcodeOutsideGb
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Basement Flat"
+        building_name: "Victoria House"
+        building_number: "15"
+        thoroughfare: "The Street"
+        post_town: "CORYTON"
+    })
+    assert address.line_1 == "Basement Flat"
+    assert address.line_2 == "Victoria House"
+    assert address.line_3 == "15 The Street"
+    assert address.premise == "Basement Flat, Victoria House, 15"
+    assert address.number == "15"
+    assert address.postal_address.locality == "CORYTON"
+}
+
+test "Rule 1 (37): Driver & Vehicle Licensing Agency" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "Driver & Vehicle Licensing Agency"
+        department_name: "Driving Licence Renewals"
+        building_name: "Driver & Vehicle Licensing Centre"
+        post_town: "SWANSEA"
+        postcode: "SA99 1AA"
+    })
+    assert address.line_1 == "Driver & Vehicle Licensing Agency"
+    assert address.line_2 == "Driving Licence Renewals"
+    assert address.line_3 == "Driver & Vehicle Licensing Centre"
+    assert address.premise == "Driver & Vehicle Licensing Centre"
+    assert address.number == none
+    assert address.postal_address.locality == "SWANSEA"
+    assert address.postal_address.postal_code == "SA99 1AA"
+}
+
+test "PO Box (38): PO Box 276" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        po_box: "276"
+        post_town: "BOGNOR REGIS"
+        postcode: "PO21 9AA"
+    })
+    assert address.line_1 == "PO Box 276"
+    assert address.line_2 == none
+    assert address.line_3 == none
+    assert address.premise == "PO Box 276"
+    assert address.number == none
+    assert address.postal_address.locality == "BOGNOR REGIS"
+    assert address.postal_address.postal_code == "PO21 9AA"
+}
+
+test "Rule 3: Exception (39): 1-2 Nursery Lane" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_name: "1-2"
+        thoroughfare: "Nursery Lane"
+        dependant_locality: "Penn"
+        post_town: "HIGH WYCOMBE"
+        postcode: "HP10 8LS"
+    })
+    assert address.line_1 == "1-2 Nursery Lane"
+    assert address.line_2 == "Penn"
+    assert address.line_3 == none
+    assert address.premise == "1-2"
+    assert address.number == "1-2"
+    assert address.postal_address.locality == "HIGH WYCOMBE"
+    assert address.postal_address.postal_code == "HP10 8LS"
+}
+
+test "Rule 3: Exception (40): 12A Upperkirkgate" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_name: "12A"
+        thoroughfare: "Upperkirkgate"
+        post_town: "ABERDEEN"
+        postcode: "AB10 1BA"
+    })
+    assert address.line_1 == "12A Upperkirkgate"
+    assert address.line_2 == none
+    assert address.line_3 == none
+    assert address.premise == "12A"
+    assert address.number == "12A"
+    assert address.postal_address.locality == "ABERDEEN"
+    assert address.postal_address.postal_code == "AB10 1BA"
+}
+
+test "Rule 3 (41): K, Portland Road" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_name: "K"
+        thoroughfare: "Portland Road"
+        post_town: "DORKING"
+        postcode: "RH4 1EW"
+    })
+    assert address.line_1 == "K, Portland Road"
+    assert address.line_2 == none
+    assert address.line_3 == none
+    assert address.premise == "K"
+    assert address.number == "K"
+    assert address.postal_address.locality == "DORKING"
+    assert address.postal_address.postal_code == "RH4 1EW"
+}
+
+test "Rule 4 (42): A, Priory Court" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "A"
+        building_name: "Priory Court"
+        thoroughfare: "Kingshill Road"
+        post_town: "DURSLEY"
+        postcode: "GL11 4DH"
+    })
+    assert address.line_1 == "A, Priory Court"
+    assert address.line_2 == "Kingshill Road"
+    assert address.line_3 == none
+    assert address.premise == "A, Priory Court"
+    assert address.number == none
+    assert address.postal_address.locality == "DURSLEY"
+    assert address.postal_address.postal_code == "GL11 4DH"
+}
+
+test "Rule 7 (43): A, Sharon Mansions" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "A"
+        building_name: "Sharon Mansions"
+        building_number: "34"
+        thoroughfare: "Lilley Road"
+        post_town: "LIVERPOOL"
+        postcode: "L7 0LR"
+    })
+    assert address.line_1 == "A, Sharon Mansions"
+    assert address.line_2 == "34 Lilley Road"
+    assert address.line_3 == none
+    assert address.premise == "A, Sharon Mansions, 34"
+    assert address.number == "34"
+    assert address.postal_address.locality == "LIVERPOOL"
+    assert address.postal_address.postal_code == "L7 0LR"
+}
+
+test "Rule 2: Exception (44): The Tambourine Warehouse" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Tambourine Warehouse"
+        building_name: "Unit 1-3"
+        dependant_thoroughfare: "Industrial Estate"
+        thoroughfare: "Tame Road"
+        post_town: "LONDON"
+        postcode: "E6 7HS"
+    })
+    assert address.line_1 == "The Tambourine Warehouse"
+    assert address.line_2 == "Unit 1-3"
+    assert address.line_3 == "Industrial Estate, Tame Road"
+    assert address.premise == "Unit 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "LONDON"
+    assert address.postal_address.postal_code == "E6 7HS"
+}
+
+test "Rule 2: Exception (45): The Tambourine Warehouse" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Tambourine Warehouse"
+        building_name: "Units 1-3"
+        dependant_thoroughfare: "Industrial Estate"
+        thoroughfare: "Tame Road"
+        post_town: "LONDON"
+        postcode: "E6 7HS"
+    })
+    assert address.line_1 == "The Tambourine Warehouse"
+    assert address.line_2 == "Units 1-3"
+    assert address.line_3 == "Industrial Estate, Tame Road"
+    assert address.premise == "Units 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "LONDON"
+    assert address.postal_address.postal_code == "E6 7HS"
+}
+
+test "Rule 2: Exception (46): The Tambourine Warehouse" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Tambourine Warehouse"
+        building_name: "Suite 1-3"
+        dependant_thoroughfare: "Industrial Estate"
+        thoroughfare: "Tame Road"
+        post_town: "LONDON"
+        postcode: "E6 7HS"
+    })
+    assert address.line_1 == "The Tambourine Warehouse"
+    assert address.line_2 == "Suite 1-3"
+    assert address.line_3 == "Industrial Estate, Tame Road"
+    assert address.premise == "Suite 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "LONDON"
+    assert address.postal_address.postal_code == "E6 7HS"
+}
+
+test "Rule 2: Exception (47): The Tambourine Warehouse" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Tambourine Warehouse"
+        building_name: "Suites 1-3"
+        dependant_thoroughfare: "Industrial Estate"
+        thoroughfare: "Tame Road"
+        post_town: "LONDON"
+        postcode: "E6 7HS"
+    })
+    assert address.line_1 == "The Tambourine Warehouse"
+    assert address.line_2 == "Suites 1-3"
+    assert address.line_3 == "Industrial Estate, Tame Road"
+    assert address.premise == "Suites 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "LONDON"
+    assert address.postal_address.postal_code == "E6 7HS"
+}
+
+test "Rule 2: Exception (48): The Tambourine Warehouse" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Tambourine Warehouse"
+        building_name: "Stall 1-3"
+        dependant_thoroughfare: "Industrial Estate"
+        thoroughfare: "Tame Road"
+        post_town: "LONDON"
+        postcode: "E6 7HS"
+    })
+    assert address.line_1 == "The Tambourine Warehouse"
+    assert address.line_2 == "Stall 1-3"
+    assert address.line_3 == "Industrial Estate, Tame Road"
+    assert address.premise == "Stall 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "LONDON"
+    assert address.postal_address.postal_code == "E6 7HS"
+}
+
+test "Rule 2: Exception (49): The Tambourine Warehouse" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Tambourine Warehouse"
+        building_name: "Stalls 1-3"
+        dependant_thoroughfare: "Industrial Estate"
+        thoroughfare: "Tame Road"
+        post_town: "LONDON"
+        postcode: "E6 7HS"
+    })
+    assert address.line_1 == "The Tambourine Warehouse"
+    assert address.line_2 == "Stalls 1-3"
+    assert address.line_3 == "Industrial Estate, Tame Road"
+    assert address.premise == "Stalls 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "LONDON"
+    assert address.postal_address.postal_code == "E6 7HS"
+}
+
+test "Rule 2: Exception (50): The Tambourine Warehouse" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Tambourine Warehouse"
+        building_name: "Shops 1-3"
+        dependant_thoroughfare: "Industrial Estate"
+        thoroughfare: "Tame Road"
+        post_town: "LONDON"
+        postcode: "E6 7HS"
+    })
+    assert address.line_1 == "The Tambourine Warehouse"
+    assert address.line_2 == "Shops 1-3"
+    assert address.line_3 == "Industrial Estate, Tame Road"
+    assert address.premise == "Shops 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "LONDON"
+    assert address.postal_address.postal_code == "E6 7HS"
+}
+
+test "Rule 2: Exception (51): The Tambourine Warehouse" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Tambourine Warehouse"
+        building_name: "Shop 1-3"
+        dependant_thoroughfare: "Industrial Estate"
+        thoroughfare: "Tame Road"
+        post_town: "LONDON"
+        postcode: "E6 7HS"
+    })
+    assert address.line_1 == "The Tambourine Warehouse"
+    assert address.line_2 == "Shop 1-3"
+    assert address.line_3 == "Industrial Estate, Tame Road"
+    assert address.premise == "Shop 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "LONDON"
+    assert address.postal_address.postal_code == "E6 7HS"
+}
+
+test "Rule 2: Exception (52): The Tambourine Warehouse" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Tambourine Warehouse"
+        building_name: "Rear of 1-3"
+        dependant_thoroughfare: "Industrial Estate"
+        thoroughfare: "Tame Road"
+        post_town: "LONDON"
+        postcode: "E6 7HS"
+    })
+    assert address.line_1 == "The Tambourine Warehouse"
+    assert address.line_2 == "Rear of 1-3"
+    assert address.line_3 == "Industrial Estate, Tame Road"
+    assert address.premise == "Rear of 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "LONDON"
+    assert address.postal_address.postal_code == "E6 7HS"
+}
+
+test "Rule 2: Exception (53): The Tambourine Warehouse" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Tambourine Warehouse"
+        building_name: "Maisonettes 1-3"
+        dependant_thoroughfare: "Industrial Estate"
+        thoroughfare: "Tame Road"
+        post_town: "LONDON"
+        postcode: "E6 7HS"
+    })
+    assert address.line_1 == "The Tambourine Warehouse"
+    assert address.line_2 == "Maisonettes 1-3"
+    assert address.line_3 == "Industrial Estate, Tame Road"
+    assert address.premise == "Maisonettes 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "LONDON"
+    assert address.postal_address.postal_code == "E6 7HS"
+}
+
+test "Rule 2: Exception (54): The Tambourine Warehouse" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Tambourine Warehouse"
+        building_name: "Maisonette 1-3"
+        dependant_thoroughfare: "Industrial Estate"
+        thoroughfare: "Tame Road"
+        post_town: "LONDON"
+        postcode: "E6 7HS"
+    })
+    assert address.line_1 == "The Tambourine Warehouse"
+    assert address.line_2 == "Maisonette 1-3"
+    assert address.line_3 == "Industrial Estate, Tame Road"
+    assert address.premise == "Maisonette 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "LONDON"
+    assert address.postal_address.postal_code == "E6 7HS"
+}
+
+test "Rule 2: Exception (55): The Tambourine Warehouse" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Tambourine Warehouse"
+        building_name: "Building 1-3"
+        dependant_thoroughfare: "Industrial Estate"
+        thoroughfare: "Tame Road"
+        post_town: "LONDON"
+        postcode: "E6 7HS"
+    })
+    assert address.line_1 == "The Tambourine Warehouse"
+    assert address.line_2 == "Building 1-3"
+    assert address.line_3 == "Industrial Estate, Tame Road"
+    assert address.premise == "Building 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "LONDON"
+    assert address.postal_address.postal_code == "E6 7HS"
+}
+
+test "Rule 2: Exception (56): The Tambourine Warehouse" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Tambourine Warehouse"
+        building_name: "Blocks 1-3"
+        dependant_thoroughfare: "Industrial Estate"
+        thoroughfare: "Tame Road"
+        post_town: "LONDON"
+        postcode: "E6 7HS"
+    })
+    assert address.line_1 == "The Tambourine Warehouse"
+    assert address.line_2 == "Blocks 1-3"
+    assert address.line_3 == "Industrial Estate, Tame Road"
+    assert address.premise == "Blocks 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "LONDON"
+    assert address.postal_address.postal_code == "E6 7HS"
+}
+
+test "Rule 2: Exception (57): The Tambourine Warehouse" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Tambourine Warehouse"
+        building_name: "Block 1-3"
+        dependant_thoroughfare: "Industrial Estate"
+        thoroughfare: "Tame Road"
+        post_town: "LONDON"
+        postcode: "E6 7HS"
+    })
+    assert address.line_1 == "The Tambourine Warehouse"
+    assert address.line_2 == "Block 1-3"
+    assert address.line_3 == "Industrial Estate, Tame Road"
+    assert address.premise == "Block 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "LONDON"
+    assert address.postal_address.postal_code == "E6 7HS"
+}
+
+test "Rule 2: Exception (58): The Tambourine Warehouse" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Tambourine Warehouse"
+        building_name: "Back of 1-3"
+        dependant_thoroughfare: "Industrial Estate"
+        thoroughfare: "Tame Road"
+        post_town: "LONDON"
+        postcode: "E6 7HS"
+    })
+    assert address.line_1 == "The Tambourine Warehouse"
+    assert address.line_2 == "Back of 1-3"
+    assert address.line_3 == "Industrial Estate, Tame Road"
+    assert address.premise == "Back of 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "LONDON"
+    assert address.postal_address.postal_code == "E6 7HS"
+}
+
+test "Rule 2: Exception (59): Quirky Candles Ltd" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "Quirky Candles Ltd"
+        building_name: "Stall 4-5"
+        thoroughfare: "Market Square"
+        post_town: "LIVERPOOL"
+        postcode: "L8 1LH"
+    })
+    assert address.line_1 == "Quirky Candles Ltd"
+    assert address.line_2 == "Stall 4-5"
+    assert address.line_3 == "Market Square"
+    assert address.premise == "Stall 4-5"
+    assert address.number == none
+    assert address.postal_address.locality == "LIVERPOOL"
+    assert address.postal_address.postal_code == "L8 1LH"
+}
+
+test "Rule 2: Exception (60): The Fudge Factory" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "The Fudge Factory"
+        building_name: "Unit 1a"
+        thoroughfare: "Dyce Industrial Park"
+        dependant_locality: "Dyce"
+        post_town: "GLASGOW"
+        postcode: "G21 7EZ"
+    })
+    assert address.line_1 == "The Fudge Factory"
+    assert address.line_2 == "Unit 1a"
+    assert address.line_3 == "Dyce Industrial Park, Dyce"
+    assert address.premise == "Unit 1a"
+    assert address.number == none
+    assert address.postal_address.locality == "GLASGOW"
+    assert address.postal_address.postal_code == "G21 7EZ"
+}
+
+test "Rule 2: Exception (61): Fiona's Flowers" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "Fiona's Flowers"
+        building_name: "Rear of 5a"
+        thoroughfare: "High Street"
+        post_town: "GATESHEAD"
+        postcode: "NE8 1BH"
+    })
+    assert address.line_1 == "Fiona's Flowers"
+    assert address.line_2 == "Rear of 5a"
+    assert address.line_3 == "High Street"
+    assert address.premise == "Rear of 5a"
+    assert address.number == none
+    assert address.postal_address.locality == "GATESHEAD"
+    assert address.postal_address.postal_code == "NE8 1BH"
+}
+
+test "Rule 2: Exception (62): Platinum Finance" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "Platinum Finance"
+        building_name: "Suite 1-3"
+        thoroughfare: "Station Road"
+        post_town: "MUSSELBURGH"
+        postcode: "EH21 7PB"
+    })
+    assert address.line_1 == "Platinum Finance"
+    assert address.line_2 == "Suite 1-3"
+    assert address.line_3 == "Station Road"
+    assert address.premise == "Suite 1-3"
+    assert address.number == none
+    assert address.postal_address.locality == "MUSSELBURGH"
+    assert address.postal_address.postal_code == "EH21 7PB"
+}
+
+test "Regression: Improperly breaking building name (63): Flat 401" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Flat 401"
+        building_name: "Wallscourt Park Residences E"
+        building_number: ""
+        thoroughfare: "Coldharbour Lane"
+        post_town: "BRISTOL"
+        postcode: "BS16 1ZX"
+    })
+    assert address.line_1 == "Flat 401"
+    assert address.line_2 == "Wallscourt Park Residences"
+    assert address.line_3 == "E Coldharbour Lane"
+    assert address.premise == "Flat 401, Wallscourt Park Residences, E"
+    assert address.number == "E"
+    assert address.postal_address.locality == "BRISTOL"
+    assert address.postal_address.postal_code == "BS16 1ZX"
+}
+
+test "Regression: Improperly breaking building name (64): Flat 401" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Flat 401"
+        building_name: "Wallscourt Park Residences U W E"
+        building_number: ""
+        thoroughfare: "Coldharbour Lane"
+        post_town: "BRISTOL"
+        postcode: "BS16 1ZX"
+    })
+    assert address.line_1 == "Flat 401"
+    assert address.line_2 == "Wallscourt Park Residences U W E"
+    assert address.line_3 == "Coldharbour Lane"
+    assert address.premise == "Flat 401, Wallscourt Park Residences U W E"
+    assert address.number == none
+    assert address.postal_address.locality == "BRISTOL"
+    assert address.postal_address.postal_code == "BS16 1ZX"
+}
+
+// uk-clear-addressing's test/rules.unit.ts (MIT, Ideal Postcodes), each rule's
+// cases checked through `paf.format`, which chooses that rule for the record,
+// and the accessors case of its test/address.unit.ts. Its rule 7 "sub and
+// building merge" case calls rule 7 directly with a building number of `0`,
+// which `paf.format` reads as none and takes to rule 6; both give the same
+// address. Generated from those files.
+
+test "rule1: returns correct address object" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: "Foo Ltd"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == none
+    assert address.unit == none
+    assert address.number == none
+    assert address.line_1 == "Foo Ltd"
+    assert address.line_2 == "High Street"
+    assert address.line_3 == none
+}
+
+test "rule2: returns correct address object" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_number: "8"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "8"
+    assert address.unit == none
+    assert address.number == "8"
+    assert address.line_1 == "8 High Street"
+    assert address.line_2 == none
+    assert address.line_3 == none
+}
+
+test "rule3: handles building name exception" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_name: "8a"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "8a"
+    assert address.unit == none
+    assert address.number == "8a"
+    assert address.line_1 == "8a High Street"
+    assert address.line_2 == none
+    assert address.line_3 == none
+}
+
+test "rule3: handles sub range match" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_name: "Foo A"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "Foo, A"
+    assert address.unit == none
+    assert address.number == "A"
+    assert address.line_1 == "Foo"
+    assert address.line_2 == "A High Street"
+    assert address.line_3 == none
+}
+
+test "rule3: handles sub range match 8-9" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_name: "Foo 8-9"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "Foo, 8-9"
+    assert address.unit == none
+    assert address.number == "8-9"
+    assert address.line_1 == "Foo"
+    assert address.line_2 == "8-9 High Street"
+    assert address.line_3 == none
+}
+
+test "rule3: returns correct address object" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_name: "Foo"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "Foo"
+    assert address.unit == none
+    assert address.number == none
+    assert address.line_1 == "Foo"
+    assert address.line_2 == "High Street"
+    assert address.line_3 == none
+}
+
+test "rule4: returns correct address object" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        building_name: "Foo"
+        building_number: "8"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "Foo, 8"
+    assert address.unit == none
+    assert address.number == "8"
+    assert address.line_1 == "Foo"
+    assert address.line_2 == "8 High Street"
+    assert address.line_3 == none
+}
+
+test "rule5: handles single character sub name" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "a"
+        building_number: "8"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "8a"
+    assert address.unit == "a"
+    assert address.number == "8"
+    assert address.line_1 == "8a High Street"
+    assert address.line_2 == none
+    assert address.line_3 == none
+}
+
+test "rule5: returns correct address format" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Foo"
+        building_number: "8"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "Foo, 8"
+    assert address.unit == "Foo"
+    assert address.number == "8"
+    assert address.line_1 == "Foo"
+    assert address.line_2 == "8 High Street"
+    assert address.line_3 == none
+}
+
+test "rule6: returns correct address object" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Bar"
+        building_name: "Foo"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "Bar, Foo"
+    assert address.unit == "Bar"
+    assert address.number == none
+    assert address.line_1 == "Bar"
+    assert address.line_2 == "Foo"
+    assert address.line_3 == "High Street"
+}
+
+test "rule6: handles name exception in sub building name" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "8a"
+        building_name: "Foo"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "8a Foo"
+    assert address.unit == "8a"
+    assert address.number == none
+    assert address.line_1 == "8a Foo"
+    assert address.line_2 == "High Street"
+    assert address.line_3 == none
+}
+
+test "rule6: handles name exception in building name - 19a" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "1"
+        building_name: "Elisa Court 19a"
+        thoroughfare: "Flaxfields End"
+    })
+    assert address.premise == "1, Elisa Court, 19a"
+    assert address.unit == "1"
+    assert address.number == "19a"
+    assert address.line_1 == "1 Elisa Court"
+    assert address.line_2 == "19a Flaxfields End"
+    assert address.line_3 == none
+}
+
+test "rule6: handles name exception in building name" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Bar"
+        building_name: "9a"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "Bar, 9a"
+    assert address.unit == "Bar"
+    assert address.number == "9a"
+    assert address.line_1 == "Bar"
+    assert address.line_2 == "9a High Street"
+    assert address.line_3 == none
+}
+
+test "rule6: handles sub and building merges" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Bar"
+        building_name: "Foo"
+        building_number: "0"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "Bar, Foo"
+    assert address.unit == "Bar"
+    assert address.number == none
+    assert address.line_1 == "Bar, Foo"
+    assert address.line_2 == "High Street"
+    assert address.line_3 == none
+}
+
+test "rule7: returns correct address object" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Bar"
+        building_name: "Foo"
+        building_number: "8"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "Bar, Foo, 8"
+    assert address.unit == "Bar"
+    assert address.number == "8"
+    assert address.line_1 == "Bar"
+    assert address.line_2 == "Foo"
+    assert address.line_3 == "8 High Street"
+}
+
+test "rule7: handles sub building name exception" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "9a"
+        building_name: "Foo"
+        building_number: "8"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "9a Foo, 8"
+    assert address.unit == "9a"
+    assert address.number == "8"
+    assert address.line_1 == "9a Foo"
+    assert address.line_2 == "8 High Street"
+    assert address.line_3 == none
+}
+
+test "rule7: handles sub and building merge" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Bar"
+        building_name: "Foo"
+        building_number: "0"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "Bar, Foo"
+    assert address.unit == "Bar"
+    assert address.number == none
+    assert address.line_1 == "Bar, Foo"
+    assert address.line_2 == "High Street"
+    assert address.line_3 == none
+}
+
+test "po_box: handles po boxes" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        po_box: "8"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "PO Box 8"
+    assert address.unit == none
+    assert address.number == none
+    assert address.line_1 == "PO Box 8"
+    assert address.line_2 == "High Street"
+    assert address.line_3 == none
+}
+
+test "undocumented rule: handles sub_building_name only" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        sub_building_name: "Foo"
+        thoroughfare: "High Street"
+    })
+    assert address.premise == "Foo"
+    assert address.unit == "Foo"
+    assert address.number == none
+    assert address.line_1 == "Foo High Street"
+    assert address.line_2 == none
+    assert address.line_3 == none
+}
+
+test "accessors: give the lines, premise, number and unit" {
+    var address: UkAddress = attempt paf.format(PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "Flat 2"
+        building_name: "Priory Court"
+        building_number: "1"
+        dependant_thoroughfare: ""
+        thoroughfare: "Kingshill Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "DURSLEY"
+    })
+    assert address.premise == "Flat 2, Priory Court, 1"
+    assert address.unit == "Flat 2"
+    assert address.number == "1"
+    assert address.line_1 == "Flat 2"
+    assert address.line_2 == "Priory Court"
+    assert address.line_3 == "1 Kingshill Road"
+}
+
+// uk-clear-addressing's test/sort.integration.ts (MIT, Ideal Postcodes): each
+// of its test/data/*.sorted.json streets, in the order it gives, comes back
+// in that order from a shuffle. The original shuffles at random on every run;
+// here each street is reversed and shuffled three ways, fixed so a run is
+// repeatable. Generated from those files.
+
+test "sort: aa11aa comes back in its order" {
+    var r1: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "188"
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r2: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "189"
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r3: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "190"
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r4: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "190a"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r5: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "191"
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r6: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "191a"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r7: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "192"
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r8: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "193"
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r9: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "193a"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r10: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "197"
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r11: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "197a"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r12: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "199"
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r13: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "199a"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r14: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "203"
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r15: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "204"
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r16: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "205"
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r17: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "206"
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r18: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "207"
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var r19: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "207a"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    var expected: List<PafAddress> = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19]
+    assert paf.sorted(list.reverse(expected)) == expected
+    assert paf.sorted([r14, r15, r19, r5, r10, r1, r3, r17, r11, r7, r16, r6, r13, r12, r9, r18, r8, r2, r4]) == expected
+    assert paf.sorted([r17, r2, r4, r16, r3, r13, r19, r11, r14, r9, r15, r8, r10, r12, r6, r18, r5, r1, r7]) == expected
+    assert paf.sorted([r18, r16, r4, r8, r5, r10, r9, r6, r11, r13, r3, r17, r19, r12, r15, r1, r7, r2, r14]) == expected
+}
+
+test "sort: aa11ab comes back in its order" {
+    var r1: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "1"
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AB"
+    }
+    var r2: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "1a"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AB"
+    }
+    var r3: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "1b"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AB"
+    }
+    var r4: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "3a"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AB"
+    }
+    var r5: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "4"
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AB"
+    }
+    var r6: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "5"
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AB"
+    }
+    var r7: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "6"
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AB"
+    }
+    var r8: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "6b"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AB"
+    }
+    var r9: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "7"
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AB"
+    }
+    var r10: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "8"
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AB"
+    }
+    var r11: PafAddress = PafAddress {
+        organisation_name: "Darlington Rewinds"
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "9"
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AB"
+    }
+    var r12: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "10"
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AB"
+    }
+    var r13: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "10a"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AB"
+    }
+    var expected: List<PafAddress> = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13]
+    assert paf.sorted(list.reverse(expected)) == expected
+    assert paf.sorted([r7, r8, r3, r5, r10, r2, r12, r4, r13, r11, r6, r9, r1]) == expected
+    assert paf.sorted([r6, r2, r5, r1, r12, r8, r10, r11, r13, r7, r4, r9, r3]) == expected
+    assert paf.sorted([r13, r5, r10, r8, r12, r1, r4, r11, r2, r6, r7, r3, r9]) == expected
+}
+
+test "sort: aa11ac comes back in its order" {
+    var r1: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "Priory Court"
+        building_number: "1"
+        dependant_thoroughfare: ""
+        thoroughfare: "Kingshill Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "DURSLEY"
+        postcode: "AA1 1AC"
+    }
+    var r2: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "Priory Court"
+        building_number: "2"
+        dependant_thoroughfare: ""
+        thoroughfare: "Kingshill Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "DURSLEY"
+        postcode: "AA1 1AC"
+    }
+    var r3: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "Priory Court"
+        building_number: "3"
+        dependant_thoroughfare: ""
+        thoroughfare: "Kingshill Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "DURSLEY"
+        postcode: "AA1 1AC"
+    }
+    var r4: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "Priory Court"
+        building_number: "4"
+        dependant_thoroughfare: ""
+        thoroughfare: "Kingshill Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "DURSLEY"
+        postcode: "AA1 1AC"
+    }
+    var r5: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "Priory Court"
+        building_number: "5"
+        dependant_thoroughfare: ""
+        thoroughfare: "Kingshill Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "DURSLEY"
+        postcode: "AA1 1AC"
+    }
+    var r6: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "A"
+        building_name: "Priory Court"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Kingshill Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "DURSLEY"
+        postcode: "AA1 1AC"
+    }
+    var r7: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "B"
+        building_name: "Priory Court"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Kingshill Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "DURSLEY"
+        postcode: "AA1 1AC"
+    }
+    var r8: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "C"
+        building_name: "Priory Court"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Kingshill Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "DURSLEY"
+        postcode: "AA1 1AC"
+    }
+    var r9: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "D"
+        building_name: "Priory Court"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Kingshill Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "DURSLEY"
+        postcode: "AA1 1AC"
+    }
+    var r10: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "E"
+        building_name: "Priory Court"
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Kingshill Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "DURSLEY"
+        postcode: "AA1 1AC"
+    }
+    var expected: List<PafAddress> = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10]
+    assert paf.sorted(list.reverse(expected)) == expected
+    assert paf.sorted([r10, r1, r3, r2, r7, r4, r8, r9, r5, r6]) == expected
+    assert paf.sorted([r5, r7, r6, r2, r8, r3, r1, r10, r4, r9]) == expected
+    assert paf.sorted([r3, r6, r9, r7, r10, r1, r4, r5, r2, r8]) == expected
+}
+
+test "sort: aa11ad comes back in its order" {
+    var r1: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: "1"
+        sub_building_name: ""
+        building_name: ""
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AD"
+    }
+    var r2: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: "2"
+        sub_building_name: ""
+        building_name: ""
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AD"
+    }
+    var r3: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: "3"
+        sub_building_name: ""
+        building_name: ""
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AD"
+    }
+    var r4: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: "4"
+        sub_building_name: ""
+        building_name: ""
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AD"
+    }
+    var r5: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: "5"
+        sub_building_name: ""
+        building_name: ""
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AD"
+    }
+    var r6: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: "10"
+        sub_building_name: ""
+        building_name: ""
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AD"
+    }
+    var r7: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: "11"
+        sub_building_name: ""
+        building_name: ""
+        building_number: ""
+        dependant_thoroughfare: ""
+        thoroughfare: "Burtreeford"
+        double_dependant_locality: ""
+        dependant_locality: "Cowshill"
+        post_town: "BISHOP AUCKLAND"
+        postcode: "AA1 1AD"
+    }
+    var expected: List<PafAddress> = [r1, r2, r3, r4, r5, r6, r7]
+    assert paf.sorted(list.reverse(expected)) == expected
+    assert paf.sorted([r6, r3, r5, r2, r7, r1, r4]) == expected
+    assert paf.sorted([r4, r1, r6, r7, r3, r2, r5]) == expected
+    assert paf.sorted([r4, r3, r1, r5, r6, r2, r7]) == expected
+}
+
+test "sort: aa11ae comes back in its order" {
+    var r1: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "Flat 1"
+        building_name: "Oxford House 70-72"
+        building_number: ""
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r2: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "Flat 2"
+        building_name: "Oxford House 70-72"
+        building_number: ""
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r3: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "Flat 3"
+        building_name: "Oxford House 70-72"
+        building_number: ""
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r4: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "Flat 4"
+        building_name: "Oxford House 70-72"
+        building_number: ""
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r5: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "Flat 5"
+        building_name: "Oxford House 70-72"
+        building_number: ""
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r6: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "Flat 6"
+        building_name: "Oxford House 70-72"
+        building_number: ""
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r7: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "Flat 7"
+        building_name: "Oxford House 70-72"
+        building_number: ""
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r8: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "Flat 8"
+        building_name: "Oxford House 70-72"
+        building_number: ""
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r9: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "Flat 9"
+        building_name: "Oxford House 70-72"
+        building_number: ""
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r10: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "74"
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r11: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "76"
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r12: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "78"
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r13: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: "Basement Flat"
+        building_name: ""
+        building_number: "78"
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r14: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "80"
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r15: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "80a"
+        building_number: ""
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r16: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "82"
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r17: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "84"
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r18: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "86"
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r19: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "88"
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r20: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "90"
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r21: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "92"
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r22: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "92a"
+        building_number: ""
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r23: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: "92b"
+        building_number: ""
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var r24: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "94"
+        thoroughfare: "Hammersmith Bridge Road"
+    }
+    var expected: List<PafAddress> = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19, r20, r21, r22, r23, r24]
+    assert paf.sorted(list.reverse(expected)) == expected
+    assert paf.sorted([r14, r17, r1, r21, r19, r11, r12, r18, r9, r22, r6, r15, r5, r20, r4, r23, r7, r13, r3, r10, r16, r24, r2, r8]) == expected
+    assert paf.sorted([r8, r14, r13, r4, r15, r5, r2, r17, r1, r16, r3, r10, r18, r7, r22, r11, r24, r12, r20, r6, r9, r19, r21, r23]) == expected
+    assert paf.sorted([r6, r10, r23, r9, r20, r21, r24, r17, r11, r15, r13, r12, r16, r2, r14, r18, r7, r22, r19, r5, r8, r3, r1, r4]) == expected
+}
+
+test "sort: identical addresses all come back" {
+    var elm: PafAddress = PafAddress {
+        organisation_name: ""
+        department_name: ""
+        po_box: ""
+        sub_building_name: ""
+        building_name: ""
+        building_number: "188"
+        dependant_thoroughfare: ""
+        thoroughfare: "Elm Road"
+        double_dependant_locality: ""
+        dependant_locality: ""
+        post_town: "LEIGH-ON-SEA"
+        postcode: "AA1 1AA"
+    }
+    assert paf.sorted([elm, elm, elm]) == [elm, elm, elm]
+}

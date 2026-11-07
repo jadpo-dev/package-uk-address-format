@@ -1,0 +1,3 @@
+/// Text laid out from a Postcode Address File record: an address line, a
+/// premise, a building number or a unit.
+public type AddressText = Text {}
